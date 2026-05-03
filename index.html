@@ -61,10 +61,9 @@ body{font-family:'Manrope',-apple-system,sans-serif;background:#F0F0F0;color:var
 /* cushion row */
 .cushion-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .cushion-row .fi{flex:1 1 160px}
-.cushion-toggle{display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-start;justify-content:flex-end;padding-bottom:12px}
-.cushion-toggle label.tgl-lbl{font-size:11px;font-weight:600;color:var(--txt2)}
-.tgl-row{display:flex;align-items:center;gap:8px}
-.tgl-row span{font-size:13px;font-weight:500;color:var(--txt2)}
+.cushion-toggle{display:flex;align-items:flex-end;gap:8px;padding-bottom:12px;flex-shrink:0}
+.cushion-toggle .tgl{flex-shrink:0;margin-bottom:2px}
+.cushion-toggle .tgl-text{font-size:12px;font-weight:500;color:var(--txt2);line-height:1.3;max-width:110px}
 
 /* toggle */
 .tgl{position:relative;width:44px;height:26px;flex-shrink:0}
@@ -90,15 +89,15 @@ body{font-family:'Manrope',-apple-system,sans-serif;background:#F0F0F0;color:var
 .btn-calc:active{background:var(--red-d);transform:scale(.98)}
 
 /* tax help */
-.col-help{display:inline-flex;align-items:center;gap:4px;position:relative}
+.col-help{display:inline-flex;align-items:center;gap:3px;position:relative}
 .help-btn{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:13px;padding:0 2px;line-height:1;flex-shrink:0}
-.help-popup{display:none;position:absolute;top:100%;left:0;background:var(--bg);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;font-size:11.5px;color:var(--txt2);width:260px;z-index:50;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.help-popup{display:none;position:fixed;background:var(--bg);border:1px solid var(--brd);border-radius:var(--rs);padding:12px 14px;font-size:12px;color:var(--txt2);width:260px;z-index:300;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,0.16);white-space:normal;text-transform:none;font-weight:400;letter-spacing:normal}
 .help-popup.open{display:block}
 
 /* table */
 .tscroll{overflow-x:auto;margin:0 -24px;padding:0 24px}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px}
-thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd)}
+thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd);position:relative}
 thead th:first-child{text-align:left}
 tbody td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--brd);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--txt)}
 tbody td:first-child{text-align:left;font-weight:700}
@@ -212,11 +211,8 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
               <input type="text" id="p-cushion" value="100 000" inputmode="numeric" oninput="fmtThis(this)">
             </div>
             <div class="cushion-toggle">
-              <label class="tgl-lbl">Не учитывать</label>
-              <div class="tgl-row">
-                <label class="tgl"><input type="checkbox" id="p-cushion-on" onchange=""><div class="tgl-track"></div></label>
-                <span>в накоплениях</span>
-              </div>
+              <label class="tgl"><input type="checkbox" id="p-cushion-on" onchange=""><div class="tgl-track"></div></label>
+              <span class="tgl-text">Не учитывать в накоплениях</span>
             </div>
           </div>
         </div>
@@ -314,24 +310,25 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           <table>
             <thead><tr>
               <th>Год</th>
-              <th>Нач. года</th>
+              <th>Начало года</th>
               <th>Взносы</th>
-              <th>% доход</th>
+              <th>% Доход</th>
               <th>
                 <div class="col-help">
                   Налог
                   <button class="help-btn" onclick="toggleHelp(event)">ⓘ</button>
                   <div class="help-popup" id="tax-help">
-                    <b>Налог на доход по вкладу</b><br><br>
-                    Ключевая ставка ≈ (инфляция + доходность) / 2<br><br>
-                    Необлагаемый минимум = 1 000 000 ₽ × ключевую ставку<br><br>
-                    Налог = 13% × max(0, доход − минимум)<br><br>
+                    <b>Налог на доход по вкладу.</b><br>
+                    Ключевая ставка ≈ (инфляция + доходность) / 2.<br>
+                    Необлагаемый минимум = 1 000 000 ₽ × ключевую ставку.<br>
+                    Налог = 13% × max(0, доход − минимум).<br>
                     Если налог &lt; 100 ₽ — ставится 0.
                   </div>
                 </div>
               </th>
-              <th>Кон. года</th>
-              <th>Цена жилья</th>
+              <th>Конец года</th>
+              <th>Требуемый взнос</th>
+              <th>Стоимость цели</th>
               <th>Доля</th>
             </tr></thead>
             <tbody id="fc-tbody"></tbody>
@@ -347,10 +344,14 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
         <button class="btn-sm" onclick="exportCSV()">⬇ Выгрузить данные</button>
         <label class="btn-sm" style="cursor:pointer">⬆ Загрузить данные<input type="file" accept=".csv" style="display:none" onchange="importCSV(this)"></label>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 14px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rs)">
+        <label class="tgl"><input type="checkbox" id="save-scenario"><div class="tgl-track"></div></label>
+        <span style="font-size:13px;font-weight:500;color:var(--txt2)">Сохранять текущий сценарий из раздела «Прогноз»</span>
+      </div>
 
       <div class="sc-grid">
         <div class="sc hi"><div class="sl">Последнее</div><div class="sv" id="v-last">—</div></div>
-        <div class="sc"><div class="sl">Прирост общий</div><div class="sv" id="v-delta">—</div></div>
+        <div class="sc"><div class="sl">С начала года</div><div class="sv" id="v-delta" style="font-size:13px">—</div></div>
         <div class="sc"><div class="sl">Записей</div><div class="sv" id="v-cnt">0</div></div>
       </div>
 
@@ -413,26 +414,41 @@ function fmtInt(n){ return isNaN(n)?'':Math.round(n).toLocaleString('ru-RU'); }
 
 function fmtThis(inp){
   const raw=String(inp.value).replace(/\s/g,'');
-  const n=parseFloat(raw.replace(',','.'));
-  if(!isNaN(n) && raw!=='' && !raw.endsWith('.') && !raw.endsWith(',') && !raw.endsWith('0')){
-    const parts=Math.floor(n).toString().split('');
-    let int='';
-    parts.forEach((c,i)=>{ if(i>0&&(parts.length-i)%3===0) int+=' '; int+=c; });
-    const dec=raw.includes('.')||raw.includes(',') ? raw.replace(',','.').split('.')[1] : '';
-    inp.value=int+(dec!==undefined&&raw.includes('.')?'.'+dec:'');
+  if(raw===''||raw.endsWith('.')||raw.endsWith(',')) return;
+  const negative=raw.startsWith('-');
+  const abs=raw.replace('-','');
+  const n=parseFloat(abs.replace(',','.'));
+  if(isNaN(n)) return;
+  const intPart=Math.floor(n);
+  // format integer part with spaces every 3 digits
+  const intStr=intPart.toString();
+  let formatted='';
+  for(let i=0;i<intStr.length;i++){
+    if(i>0&&(intStr.length-i)%3===0) formatted+=' ';
+    formatted+=intStr[i];
   }
+  if(negative) formatted='-'+formatted;
+  const hasDec=raw.includes('.')||raw.includes(',');
+  const decPart=hasDec?raw.replace(',','.').split('.')[1]:null;
+  inp.value=formatted+(decPart!==null?'.'+decPart:'');
 }
 
 function nv(id){ return rawNum(document.getElementById(id).value); }
 
 function fM(n){
   if(n===null||n===undefined) return '—';
-  if(Math.abs(n)>=1e6) return fmtInt(Math.round(n/1e4)*1e4/1e6).replace(',',',')+' млн ₽';
+  const abs=Math.abs(n);
+  if(abs>=1e6){
+    return (n/1e6).toFixed(2).replace('.',',')+' млн ₽';
+  }
+  if(abs>=1e3){
+    return (n/1e3).toFixed(2).replace('.',',')+' тыс ₽';
+  }
   return fmtInt(n)+' ₽';
 }
 function fShort(n){
   if(Math.abs(n)>=1e6) return (n/1e6).toFixed(1).replace('.',',')+' млн';
-  if(Math.abs(n)>=1e3) return fmtInt(Math.round(n/1e3)*1e3/1e3)+' тыс';
+  if(Math.abs(n)>=1e3) return (n/1e3).toFixed(1).replace('.',',')+' тыс';
   return fmtInt(n);
 }
 
@@ -533,7 +549,19 @@ function removeYR(i){ if(yrs.length<=1) return; yrs.splice(i,1); renderYR(); }
 // ════ TAX HELP ════
 function toggleHelp(e){
   e.stopPropagation();
-  document.getElementById('tax-help').classList.toggle('open');
+  const popup=document.getElementById('tax-help');
+  const btn=e.currentTarget;
+  const rect=btn.getBoundingClientRect();
+  popup.classList.toggle('open');
+  if(popup.classList.contains('open')){
+    // position below button, left-aligned, but keep on screen
+    let left=rect.left;
+    let top=rect.bottom+6;
+    const pw=260;
+    if(left+pw>window.innerWidth-8) left=window.innerWidth-pw-8;
+    popup.style.left=left+'px';
+    popup.style.top=top+'px';
+  }
 }
 document.addEventListener('click',()=>document.getElementById('tax-help').classList.remove('open'));
 
@@ -580,7 +608,7 @@ function calcForecast(){
 
   const contrib=nv('p-contrib');
   const cushionOn=document.getElementById('p-cushion-on').checked;
-  const cushion=cushionOn?0:nv('p-cushion'); // "не учитывать" = exclude from investable
+  const cushionAmt=nv('p-cushion');
   const price0=getPrice();
   const priceGrowthNom=nv('p-growth');
   const downpay=nv('p-downpay')/100;
@@ -591,15 +619,19 @@ function calcForecast(){
 
   if(ytype==='flex') syncYieldFromDOM();
 
-  const startYr=startDate.getFullYear();
+  const today=startDate;
+  const startYr=today.getFullYear();
+  // Days remaining in current year from today (inclusive)
   const Jan1Next=new Date(startYr+1,0,1);
-  const daysLeft=Math.max(1,(Jan1Next-startDate)/86400000);
-  const fracFirst=Math.min(1,daysLeft/365);
-  const monthsLeft=Math.round(fracFirst*12);
+  const msLeft=Jan1Next-today;
+  const daysInYear=((new Date(startYr+1,0,1))-(new Date(startYr,0,1)))/86400000;
+  const daysLeft=msLeft/86400000;
+  const fracFirst=Math.min(1,daysLeft/daysInYear);
+  // Months remaining (proportional)
+  const monthsLeft=fracFirst*12;
 
-  let balance=Math.max(0,deposit-(cushionOn?0:nv('p-cushion')));
-  // If cushion not excluded, it's part of balance
-  if(cushionOn) balance=deposit; // include cushion in investable
+  // Starting investable balance
+  let balance = cushionOn ? deposit : Math.max(0, deposit - cushionAmt);
 
   const rows=[];
   let goalIdx=-1;
@@ -610,15 +642,18 @@ function calcForecast(){
     const frac=isFirst?fracFirst:1;
     const months=isFirst?monthsLeft:12;
     const yrContrib=contrib*months;
-    const interest=(balance*rate + yrContrib*rate/2)*frac;
+    // Interest: balance earns for full period, contributions earn for half the period (mid-year approximation)
+    const interest=balance*rate*frac + yrContrib*rate*frac/2;
     const tax=calcTax(interest,rate,infl);
     const endBal=balance+yrContrib+interest-tax;
-    const housing=price0*Math.pow(1+priceGrowthReal,yr-startYr+(isFirst?frac:1));
+    // Price grows from start: for first partial year grow proportionally
+    const yearsElapsed=yr-startYr+(isFirst?frac:1);
+    const housing=price0*Math.pow(1+priceGrowthReal,yearsElapsed);
     const required=housing*downpay;
-    const effectiveBal=endBal+(cushionOn?0:nv('p-cushion'));
+    const effectiveBal=endBal+(cushionOn?0:cushionAmt);
     const share=effectiveBal/required;
 
-    rows.push({yr,startBal:isFirst?null:balance,contrib:isFirst?null:yrContrib,interest:isFirst?null:interest,tax:isFirst?null:tax,endBal,housing,required,share});
+    rows.push({yr, startBal:isFirst?null:balance, contrib:yrContrib, interest, tax, endBal, housing, required, share});
     balance=endBal;
 
     if(share>=1&&goalIdx<0) goalIdx=rows.length-1;
@@ -627,19 +662,21 @@ function calcForecast(){
 
   const tbody=document.getElementById('fc-tbody');
   tbody.innerHTML='';
-  rows.forEach(r=>{
-    const isMs=r.share>=1&&goalIdx===rows.indexOf(r);
+  rows.forEach((r,idx)=>{
+    const isFirstGoal=idx===goalIdx;
     const isOver=r.share>=1;
     const tr=document.createElement('tr');
-    if(isMs) tr.className='ms';
+    if(isFirstGoal) tr.className='ms';
     tr.innerHTML='<td>'+r.yr+'</td>'+
       '<td>'+fM(r.startBal)+'</td>'+
       '<td>'+fM(r.contrib)+'</td>'+
       '<td>'+fM(r.interest)+'</td>'+
       '<td>'+fM(r.tax)+'</td>'+
       '<td>'+fM(r.endBal)+'</td>'+
+      '<td>'+fM(r.required)+'</td>'+
       '<td>'+fM(r.housing)+'</td>'+
-      '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+(r.share*100).toFixed(1)+'%</td>';
+      '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+
+        (r.share*100).toFixed(1)+'%</td>';
     tbody.appendChild(tr);
   });
 
@@ -669,6 +706,24 @@ function exportCSV(){
   if(!entries.length){ alert('Нет данных для выгрузки'); return; }
   let csv='Дата,Сумма\n';
   entries.forEach(e=>{ csv+=e.date+','+e.amount+'\n'; });
+  const saveScen=document.getElementById('save-scenario').checked;
+  if(saveScen){
+    csv+='\n#SCENARIO\n';
+    const fields=['p-infl','p-dep-mode','p-deposit','p-contrib','p-cushion','p-cushion-on',
+      'p-goal-type','p-price-mode','p-price','p-sqm','p-sqm-price','p-growth','p-downpay',
+      'p-ytype','p-yfixed'];
+    fields.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      const val=el.type==='checkbox'?el.checked:el.value;
+      csv+=id+','+val+'\n';
+    });
+    // yield rows
+    if(document.getElementById('p-ytype').value==='flex'){
+      syncYieldFromDOM();
+      csv+='yield_rows,'+JSON.stringify(yrs)+'\n';
+    }
+  }
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='накопления_'+new Date().toISOString().slice(0,10)+'.csv';
@@ -678,23 +733,46 @@ function importCSV(input){
   const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
-    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    const text=e.target.result;
+    const parts2=text.split('\n#SCENARIO\n');
+    const dataLines=parts2[0].split('\n').filter(l=>l.trim());
     const imported=[];
-    lines.forEach(l=>{
+    dataLines.forEach(l=>{
       const parts=l.split(',');
       if(parts.length<2) return;
       const date=parts[0].trim();
       const amount=parseFloat(parts[1].replace(/\s/g,''));
       if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&!isNaN(amount)) imported.push({date,amount});
     });
+    let scen=null;
+    if(parts2[1]){
+      scen=[];
+      parts2[1].split('\n').filter(l=>l.trim()).forEach(l=>{
+        const idx=l.indexOf(',');
+        if(idx<0) return;
+        scen.push([l.slice(0,idx).trim(), l.slice(idx+1).trim()]);
+      });
+    }
     if(!imported.length){ alert('Не удалось прочитать файл'); return; }
     entries=[...entries,...imported];
-    // deduplicate by date (keep last)
     const map={};
     entries.forEach(e=>map[e.date]=e.amount);
     entries=Object.keys(map).sort().map(d=>({date:d,amount:map[d]}));
     save(); renderTracker();
-    alert('Загружено записей: '+imported.length);
+    // restore scenario if present
+    let msg='Загружено записей: '+imported.length;
+    if(scen){
+      scen.forEach(([id,val])=>{
+        const el=document.getElementById(id);
+        if(!el) return;
+        if(id==='yield_rows'){try{yrs=JSON.parse(val);}catch(e){} return;}
+        if(el.type==='checkbox') el.checked=(val==='true');
+        else el.value=val;
+      });
+      onDepModeChange(); onPriceModeChange(); onYieldTypeChange();
+      msg+='\nСценарий прогноза восстановлен.';
+    }
+    alert(msg);
   };
   reader.readAsText(file,'utf-8');
   input.value='';
@@ -736,20 +814,53 @@ function renderTracker(){
   if(entries.length){
     const last=entries[entries.length-1];
     document.getElementById('v-last').textContent=fShort(last.amount);
-    if(entries.length>1){
-      const first=entries[0];
-      const delta=last.amount-first.amount;
-      const el=document.getElementById('v-delta');
-      el.textContent=(delta>=0?'+':'')+fShort(Math.abs(delta));
-      el.className='sv '+(delta>=0?'dp':'dn');
+    // Year-change: interpolate value at Jan 1 of last entry's year
+    const el=document.getElementById('v-delta');
+    const lastDate=new Date(last.date+'T00:00:00');
+    const jan1=new Date(lastDate.getFullYear(),0,1).getTime();
+    const jan1Str=lastDate.getFullYear()+'-01-01';
+    // find entries bracketing Jan 1
+    const before=entries.filter(e=>e.date<=jan1Str);
+    const after=entries.filter(e=>e.date>=jan1Str);
+    if(before.length&&after.length){
+      let jan1Val;
+      const bLast=before[before.length-1];
+      const aFirst=after[0];
+      if(bLast.date===jan1Str){
+        jan1Val=bLast.amount;
+      } else if(aFirst.date===jan1Str){
+        jan1Val=aFirst.amount;
+      } else {
+        // linear interpolation
+        const t0=new Date(bLast.date+'T00:00:00').getTime();
+        const t1=new Date(aFirst.date+'T00:00:00').getTime();
+        const frac=(jan1-t0)/(t1-t0);
+        jan1Val=bLast.amount+frac*(aFirst.amount-bLast.amount);
+      }
+      if(last.date===jan1Str){
+        el.textContent='Недостаточно данных';
+        el.className='sv';
+        el.style.color='var(--txt3)';
+        el.style.fontSize='11px';
+      } else {
+        const delta=last.amount-jan1Val;
+        const pct=(delta/jan1Val*100);
+        el.textContent=(delta>=0?'+':'')+pct.toFixed(1)+'%';
+        el.className='sv '+(delta>=0?'dp':'dn');
+        el.style.color='';
+        el.style.fontSize='';
+      }
     } else {
-      const el=document.getElementById('v-delta');
-      el.textContent='—'; el.className='sv';
+      el.textContent='Недостаточно данных';
+      el.className='sv';
+      el.style.color='var(--txt3)';
+      el.style.fontSize='11px';
     }
   } else {
     document.getElementById('v-last').textContent='—';
     const el=document.getElementById('v-delta');
     el.textContent='—'; el.className='sv';
+    el.style.color='';el.style.fontSize='';
   }
   if(document.getElementById('page-tracker').classList.contains('active')) renderChart();
 }
