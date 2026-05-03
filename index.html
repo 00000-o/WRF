@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E8001C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Накопления">
+<meta name="description" content="Прогноз и трекер накоплений">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Накопления</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E8001C;
+    --red-light: #FFF0F2;
+    --red-mid: #FFD6DA;
+    --red-dark: #B5001A;
+    --text: #0D0D0D;
+    --text-2: #5A5A5A;
+    --text-3: #9A9A9A;
+    --bg: #FFFFFF;
+    --bg-2: #F7F7F7;
+    --bg-3: #EFEFEF;
+    --border: rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --nav-h: 68px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Manrope', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── App Shell ─── */
+  #app { display: flex; flex-direction: column; height: 100%; }
+  #header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 14px;
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #header .logo { width: 32px; height: 32px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  #header .logo svg { width: 18px; height: 18px; fill: white; }
+  #header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  #header .subtitle { font-size: 11px; color: var(--text-3); font-weight: 500; margin-top: 1px; }
+
+  #content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: calc(var(--nav-h) + var(--safe-b) + 8px); }
+  .page { display: none; padding: 20px; }
+  .page.active { display: block; }
+
+  /* ─── Nav ─── */
+  #nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: calc(var(--nav-h) + var(--safe-b));
+    padding-bottom: var(--safe-b);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; background: none; border: none; cursor: pointer;
+    color: var(--text-3); font-family: inherit; transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--red); }
+  .nav-btn svg { width: 22px; height: 22px; fill: currentColor; transition: transform 0.15s; }
+  .nav-btn.active svg { transform: scale(1.1); }
+  .nav-btn span { font-size: 11px; font-weight: 600; }
+
+  /* ─── Section titles ─── */
+  .sec-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--text-3); text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  /* ─── Param cards ─── */
+  .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
+  .param-card {
+    background: var(--bg-2); border-radius: var(--radius-sm);
+    padding: 14px 14px 12px; border: 1px solid var(--border);
+  }
+  .param-card .p-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin-bottom: 5px; line-height: 1.3; }
+  .param-card .p-value { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .param-card.red { background: var(--red-light); border-color: var(--red-mid); }
+  .param-card.red .p-value { color: var(--red); }
+
+  /* ─── Forecast Table ─── */
+  .table-scroll { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 600px; }
+  thead th {
+    font-size: 10.5px; font-weight: 700; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0 8px 10px; text-align: right; white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  thead th:first-child { text-align: left; }
+  tbody tr { transition: background 0.1s; }
+  tbody tr:active { background: var(--bg-2); }
+  tbody td {
+    padding: 10px 8px; text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    font-size: 12.5px; color: var(--text);
+  }
+  tbody td:first-child { text-align: left; font-weight: 700; color: var(--text); }
+  .milestone-row td { color: var(--red) !important; background: var(--red-light); }
+  .milestone-row td:first-child { border-left: 3px solid var(--red); padding-left: 5px; }
+
+  /* ─── Tracker page ─── */
+  .summary-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .sum-card {
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 12px;
+    text-align: center;
+  }
+  .sum-card .s-label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .sum-card .s-val { font-size: 15px; font-weight: 700; letter-spacing: -0.4px; }
+  .sum-card.highlight { background: var(--red); border-color: var(--red); }
+  .sum-card.highlight .s-label { color: rgba(255,255,255,0.7); }
+  .sum-card.highlight .s-val { color: #fff; }
+  .delta-pos { color: #1AAF5D; }
+  .delta-neg { color: var(--red); }
+
+  /* ─── Chart area ─── */
+  .chart-section { margin-bottom: 24px; }
+  .chart-display {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .chart-tooltip-bar {
+    padding: 16px 16px 6px;
+    min-height: 72px;
+  }
+  .ct-date { font-size: 12px; color: var(--text-3); font-weight: 500; margin-bottom: 4px; }
+  .ct-value { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); }
+  .ct-delta { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .chart-canvas-wrap { position: relative; width: 100%; height: 180px; cursor: crosshair; user-select: none; }
+  canvas#chart { display: block; width: 100%; height: 100%; }
+  .chart-slider-line {
+    position: absolute; top: 0; bottom: 0; width: 1px;
+    background: var(--red); pointer-events: none; display: none;
+  }
+  .chart-dot {
+    position: absolute; width: 10px; height: 10px;
+    background: var(--red); border: 2px solid white;
+    border-radius: 50%; pointer-events: none; display: none;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 3px rgba(232,0,28,0.2);
+  }
+  .x-axis-labels {
+    display: flex; justify-content: space-between;
+    padding: 6px 12px 12px;
+    font-size: 10px; color: var(--text-3); font-weight: 500;
+  }
+  .empty-chart {
+    height: 180px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 13px; font-weight: 500;
+    flex-direction: column; gap: 8px;
+  }
+  .empty-chart svg { width: 36px; height: 36px; fill: var(--bg-3); }
+
+  /* ─── Add entry form ─── */
+  .add-form {
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 24px;
+  }
+  .form-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+  .form-row { display: flex; gap: 10px; }
+  .field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; font-weight: 600; color: var(--text-2); }
+  .field input {
+    padding: 12px 12px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-family: inherit;
+    font-size: 14px; background: var(--bg); color: var(--text);
+    outline: none; -webkit-appearance: none; transition: border-color 0.15s;
+    font-weight: 500;
+  }
+  .field input:focus { border-color: var(--red); }
+  .btn-add {
+    width: 100%; margin-top: 12px; padding: 14px;
+    background: var(--red); color: white; border: none;
+    border-radius: var(--radius-sm); font-family: inherit;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.2px;
+  }
+  .btn-add:active { background: var(--red-dark); transform: scale(0.98); }
+  .err-msg { font-size: 12px; color: var(--red); margin-top: 8px; font-weight: 500; display: none; }
+
+  /* ─── Entries list ─── */
+  .entries-section { }
+  .entry-item {
+    display: flex; align-items: center;
+    padding: 13px 0; border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .entry-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--red); flex-shrink: 0;
+  }
+  .entry-info { flex: 1; }
+  .entry-date { font-size: 12px; color: var(--text-3); font-weight: 500; }
+  .entry-amt { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .entry-del {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); font-size: 18px; padding: 4px 8px;
+    border-radius: 6px; transition: color 0.15s;
+  }
+  .entry-del:active { color: var(--red); }
+
+  /* ─── Scrollbar ─── */
+  #content::-webkit-scrollbar { width: 3px; }
+  #content::-webkit-scrollbar-track { background: transparent; }
+  #content::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+
+  /* ─── Install banner ─── */
+  #install-banner {
+    display: none; position: fixed; top: 0; left: 0; right: 0;
+    background: var(--red); color: white; padding: 12px 16px;
+    font-size: 13px; font-weight: 600; z-index: 200;
+    justify-content: space-between; align-items: center;
+    gap: 10px;
+  }
+  #install-banner button {
+    background: white; color: var(--red); border: none;
+    padding: 6px 14px; border-radius: 6px;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+  #install-banner .close-btn {
+    background: none; color: rgba(255,255,255,0.7); padding: 4px;
+    font-size: 18px; min-width: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="install-banner">
+  <span>Установите приложение на экран</span>
+  <button id="install-btn">Установить</button>
+  <button class="close-btn" id="close-banner">✕</button>
+</div>
+
+<div id="app">
+  <div id="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    </div>
+    <div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:-0.3px">Накопления</div>
+      <div style="font-size:11px;color:var(--text-3);font-weight:500">Прогноз и трекер</div>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- PAGE 1: FORECAST -->
+    <div class="page active" id="page-forecast">
+      <div class="sec-title">Параметры</div>
+      <div class="params-grid">
+        <div class="param-card red"><div class="p-label">Стартовый депозит</div><div class="p-value">1 215 515 ₽</div></div>
+        <div class="param-card"><div class="p-label">Подушка безопасности</div><div class="p-value">200 755 ₽</div></div>
+        <div class="param-card"><div class="p-label">Взнос в месяц</div><div class="p-value">67 000 ₽</div></div>
+        <div class="param-card"><div class="p-label">Стоимость жилья</div><div class="p-value">24 500 000 ₽</div></div>
+        <div class="param-card"><div class="p-label">Рост цен на жильё</div><div class="p-value">6% / год</div></div>
+        <div class="param-card"><div class="p-label">Первоначальный взнос</div><div class="p-value">70%</div></div>
+        <div class="param-card"><div class="p-label">Доходность '25–'28</div><div class="p-value">14%</div></div>
+        <div class="param-card"><div class="p-label">Доходность '29–'32</div><div class="p-value">13%</div></div>
+        <div class="param-card"><div class="p-label">Доходность '33–'36</div><div class="p-value">12%</div></div>
+        <div class="param-card"><div class="p-label">Доходность '37–'40</div><div class="p-value">11%</div></div>
+      </div>
+
+      <div class="sec-title">Прогноз по годам</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Год</th>
+              <th>Нач. года</th>
+              <th>Взносы</th>
+              <th>Начисл. %</th>
+              <th>Налог</th>
+              <th>Кон. года</th>
+              <th>Цена жилья</th>
+              <th>Треб. взнос</th>
+              <th>Доля</th>
+            </tr>
+          </thead>
+          <tbody id="forecast-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE 2: TRACKER -->
+    <div class="page" id="page-tracker">
+      <div class="summary-strip">
+        <div class="sum-card highlight">
+          <div class="s-label">Последнее</div>
+          <div class="s-val" id="last-val">—</div>
+        </div>
+        <div class="sum-card">
+          <div class="s-label">Прирост</div>
+          <div class="s-val" id="delta-val">—</div>
+        </div>
+        <div class="sum-card">
+          <div class="s-label">Записей</div>
+          <div class="s-val" id="count-val">0</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="sec-title">График накоплений</div>
+        <div class="chart-display">
+          <div class="chart-tooltip-bar" id="tooltip-bar">
+            <div class="ct-date" id="tooltip-date">Нет данных</div>
+            <div class="ct-value" id="tooltip-value">—</div>
+            <div class="ct-delta" id="tooltip-delta"></div>
+          </div>
+          <div class="chart-canvas-wrap" id="chart-wrap">
+            <div class="empty-chart" id="empty-chart">
+              <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+              Добавьте запись для отображения
+            </div>
+            <canvas id="chart" style="display:none"></canvas>
+            <div class="chart-slider-line" id="slider-line"></div>
+            <div class="chart-dot" id="chart-dot"></div>
+          </div>
+          <div class="x-axis-labels" id="x-labels"></div>
+        </div>
+      </div>
+
+      <div class="add-form">
+        <div class="form-title">Добавить запись</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Дата</label>
+            <input type="date" id="entry-date">
+          </div>
+          <div class="field">
+            <label>Сумма (₽)</label>
+            <input type="number" id="entry-amount" placeholder="0" step="1000" inputmode="numeric">
+          </div>
+        </div>
+        <div class="err-msg" id="err-msg">Заполните все поля корректно</div>
+        <button class="btn-add" id="add-btn">Добавить</button>
+      </div>
+
+      <div class="entries-section">
+        <div class="sec-title">История</div>
+        <div id="entries-list"></div>
+        <div id="no-entries" style="color:var(--text-3);font-size:13px;font-weight:500;padding:12px 0">Записей пока нет</div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" id="btn-forecast" onclick="showPage('forecast')">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span>Прогноз</span>
+    </button>
+    <button class="nav-btn" id="btn-tracker" onclick="showPage('tracker')">
+      <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+      <span>Накопления</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+// ─── DATA ───
+const FORECAST = [
+  {y:2025,s:null,c:null,i:null,t:null,e:1200000,h:24500000,r:17150000,sh:0.070},
+  {y:2026,s:1215515,c:569500,i:44758,t:0,e:1829773,h:25970000,r:18179000,sh:0.101},
+  {y:2027,s:1829773,c:804000,i:256168,t:12502,e:2877439,h:27528200,r:19269740,sh:0.149},
+  {y:2028,s:2877439,c:804000,i:402841,t:31569,e:4052711,h:29179892,r:20425924,sh:0.198},
+  {y:2029,s:4052711,c:804000,i:526852,t:48991,e:5334573,h:30930686,r:21651480,sh:0.246},
+  {y:2030,s:5334573,c:804000,i:693494,t:70654,e:6761413,h:32786527,r:22950569,sh:0.295},
+  {y:2031,s:6761413,c:804000,i:878984,t:94768,e:8349629,h:34753718,r:24327603,sh:0.343},
+  {y:2032,s:8349629,c:804000,i:1085452,t:121609,e:10117472,h:36838941,r:25787259,sh:0.392},
+  {y:2033,s:10117472,c:804000,i:1214097,t:139633,e:11995936,h:39049278,r:27334494,sh:0.439},
+  {y:2034,s:11995936,c:804000,i:1439512,t:168937,e:14070511,h:41392235,r:28974564,sh:0.486},
+  {y:2035,s:14070511,c:804000,i:1688461,t:201300,e:16361673,h:43875769,r:30713038,sh:0.533},
+  {y:2036,s:16361673,c:804000,i:1963401,t:237042,e:18892031,h:46508315,r:32555820,sh:0.580},
+  {y:2037,s:18892031,c:804000,i:2078123,t:253256,e:21520899,h:49298814,r:34509169,sh:0.624},
+  {y:2038,s:21520899,c:804000,i:2367299,t:290849,e:24401349,h:52256742,r:36579720,sh:0.667},
+  {y:2039,s:24401349,c:804000,i:2684148,t:332039,e:27557458,h:55392147,r:38774503,sh:0.711},
+  {y:2040,s:27557458,c:804000,i:3031320,t:377172,e:31015606,h:58715676,r:41100973,sh:0.755},
+  {y:2041,s:31015606,c:804000,i:3101561,t:387603,e:34533564,h:62238616,r:43567031,sh:0.793},
+  {y:2042,s:34533564,c:804000,i:3453356,t:433336,e:38357584,h:65972933,r:46181053,sh:0.831},
+  {y:2043,s:38357584,c:804000,i:3835758,t:483049,e:42514294,h:69931309,r:48951916,sh:0.868},
+  {y:2044,s:42514294,c:804000,i:4251429,t:537086,e:47032638,h:74127188,r:51889031,sh:0.906},
+  {y:2045,s:47032638,c:804000,i:4703264,t:595824,e:51944077,h:78574819,r:55002373,sh:0.944},
+  {y:2046,s:51944077,c:804000,i:5194408,t:659673,e:57282812,h:83289308,r:58302516,sh:0.983},
+  {y:2047,s:57282812,c:804000,i:5728281,t:729077,e:63086017,h:88286667,r:61800667,sh:1.021},
+  {y:2048,s:63086017,c:804000,i:6308602,t:804518,e:69394100,h:93583867,r:65508707,sh:1.059},
+  {y:2049,s:69394100,c:804000,i:6939410,t:886523,e:76250987,h:99198899,r:69439229,sh:1.098},
+];
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1e6) return (n/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' млн ₽';
+  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+}
+function fmtFull(n) {
+  if (n === null || n === undefined) return '—';
+  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+}
+
+// ─── BUILD FORECAST TABLE ───
+const tb = document.getElementById('forecast-tbody');
+FORECAST.forEach(r => {
+  const milestone = r.sh >= 0.98 && r.sh < 1.04;
+  const tr = document.createElement('tr');
+  if (milestone) tr.className = 'milestone-row';
+  tr.innerHTML = `<td>${r.y}</td><td>${fmt(r.s)}</td><td>${fmt(r.c)}</td><td>${fmt(r.i)}</td><td>${fmt(r.t)}</td><td>${fmt(r.e)}</td><td>${fmt(r.h)}</td><td>${fmt(r.r)}</td><td>${(r.sh*100).toFixed(1)}%</td>`;
+  tb.appendChild(tr);
+});
+
+// ─── NAV ───
+function showPage(name) {
+  ['forecast','tracker'].forEach(p => {
+    document.getElementById('page-'+p).classList.toggle('active', p===name);
+    document.getElementById('btn-'+p).classList.toggle('active', p===name);
+  });
+  if (name === 'tracker') renderChart();
+}
+
+// ─── STORAGE ───
+let entries = JSON.parse(localStorage.getItem('savings_entries') || '[]');
+function save() { localStorage.setItem('savings_entries', JSON.stringify(entries)); }
+
+// ─── ADD ENTRY ───
+document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('add-btn').addEventListener('click', () => {
+  const d = document.getElementById('entry-date').value;
+  const a = parseFloat(document.getElementById('entry-amount').value);
+  const err = document.getElementById('err-msg');
+  if (!d || isNaN(a) || a <= 0) { err.style.display = ''; return; }
+  err.style.display = 'none';
+  entries.push({ date: d, amount: a });
+  entries.sort((a,b) => a.date.localeCompare(b.date));
+  save();
+  document.getElementById('entry-amount').value = '';
+  renderTracker();
+});
+
+function deleteEntry(i) {
+  entries.splice(i, 1);
+  save();
+  renderTracker();
+}
+
+// ─── RENDER TRACKER ───
+function renderTracker() {
+  const list = document.getElementById('entries-list');
+  const noEnt = document.getElementById('no-entries');
+  list.innerHTML = '';
+  if (entries.length === 0) {
+    noEnt.style.display = '';
+  } else {
+    noEnt.style.display = 'none';
+    [...entries].reverse().forEach((e, ri) => {
+      const i = entries.length - 1 - ri;
+      const d = new Date(e.date + 'T00:00:00');
+      const ds = d.toLocaleDateString('ru-RU', {day:'2-digit',month:'long',year:'numeric'});
+      const div = document.createElement('div');
+      div.className = 'entry-item';
+      div.innerHTML = `<div class="entry-dot"></div><div class="entry-info"><div class="entry-date">${ds}</div><div class="entry-amt">${Math.round(e.amount).toLocaleString('ru-RU')} ₽</div></div><button class="entry-del" onclick="deleteEntry(${i})">✕</button>`;
+      list.appendChild(div);
+    });
+  }
+
+  document.getElementById('count-val').textContent = entries.length;
+  if (entries.length > 0) {
+    const last = entries[entries.length-1];
+    document.getElementById('last-val').textContent = formatShort(last.amount);
+    if (entries.length > 1) {
+      const delta = last.amount - entries[0].amount;
+      const sign = delta >= 0 ? '+' : '';
+      const el = document.getElementById('delta-val');
+      el.textContent = sign + formatShort(Math.abs(delta));
+      el.className = 's-val ' + (delta >= 0 ? 'delta-pos' : 'delta-neg');
+    } else {
+      document.getElementById('delta-val').textContent = '—';
+      document.getElementById('delta-val').className = 's-val';
+    }
+  } else {
+    document.getElementById('last-val').textContent = '—';
+    document.getElementById('delta-val').textContent = '—';
+    document.getElementById('delta-val').className = 's-val';
+  }
+  renderChart();
+}
+
+function formatShort(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.', ',') + ' млн';
+  if (n >= 1e3) return Math.round(n/1e3) + ' тыс';
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+// ─── CHART ───
+let chartPoints = [];
+let activeIdx = -1;
+
+function renderChart() {
+  const wrap = document.getElementById('chart-wrap');
+  const canvas = document.getElementById('chart');
+  const empty = document.getElementById('empty-chart');
+  const sliderLine = document.getElementById('slider-line');
+  const dot = document.getElementById('chart-dot');
+  const xLabels = document.getElementById('x-labels');
+
+  if (entries.length < 1) {
+    canvas.style.display = 'none';
+    empty.style.display = 'flex';
+    sliderLine.style.display = 'none';
+    dot.style.display = 'none';
+    xLabels.innerHTML = '';
+    document.getElementById('tooltip-date').textContent = 'Нет данных';
+    document.getElementById('tooltip-value').textContent = '—';
+    document.getElementById('tooltip-delta').textContent = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  canvas.style.display = 'block';
+
+  const W = wrap.offsetWidth || 340;
+  const H = 180;
+  const PR = window.devicePixelRatio || 1;
+  canvas.width = W * PR;
+  canvas.height = H * PR;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(PR, PR);
+
+  const pad = { t: 10, r: 12, b: 20, l: 12 };
+  const gw = W - pad.l - pad.r;
+  const gh = H - pad.t - pad.b;
+
+  const vals = entries.map(e => e.amount);
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+
+  chartPoints = entries.map((e, i) => {
+    const x = pad.l + (entries.length === 1 ? gw / 2 : (i / (entries.length - 1)) * gw);
+    const y = pad.t + gh - ((e.amount - minV) / range) * gh;
+    return { x, y, entry: e, idx: i };
+  });
+
+  // Fill gradient
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + gh);
+  grad.addColorStop(0, 'rgba(232,0,28,0.15)');
+  grad.addColorStop(1, 'rgba(232,0,28,0.00)');
+
+  ctx.beginPath();
+  ctx.moveTo(chartPoints[0].x, pad.t + gh);
+  chartPoints.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(chartPoints[chartPoints.length-1].x, pad.t + gh);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  chartPoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#E8001C';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // X-axis labels
+  const maxLabels = Math.min(entries.length, 5);
+  const step = Math.max(1, Math.floor((entries.length - 1) / (maxLabels - 1)));
+  let labelHTML = '';
+  for (let i = 0; i < entries.length; i += step) {
+    const d = new Date(entries[i].date + 'T00:00:00');
+    const label = d.toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
+    labelHTML += `<span>${label}</span>`;
+  }
+  xLabels.innerHTML = labelHTML;
+
+  // Init tooltip to last point
+  if (activeIdx < 0 || activeIdx >= entries.length) activeIdx = entries.length - 1;
+  updateTooltip(activeIdx);
+}
+
+function updateTooltip(idx) {
+  if (!chartPoints.length || idx < 0) return;
+  activeIdx = idx;
+  const p = chartPoints[idx];
+  const e = p.entry;
+  const d = new Date(e.date + 'T00:00:00');
+  const ds = d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+  document.getElementById('tooltip-date').textContent = ds;
+  document.getElementById('tooltip-value').textContent = Math.round(e.amount).toLocaleString('ru-RU') + ' ₽';
+
+  const deltaEl = document.getElementById('tooltip-delta');
+  if (idx > 0) {
+    const prev = entries[idx - 1].amount;
+    const delta = e.amount - prev;
+    const sign = delta >= 0 ? '+' : '';
+    deltaEl.textContent = sign + Math.round(delta).toLocaleString('ru-RU') + ' ₽ к предыдущей записи';
+    deltaEl.style.color = delta >= 0 ? '#1AAF5D' : '#E8001C';
+  } else {
+    deltaEl.textContent = '';
+  }
+
+  const line = document.getElementById('slider-line');
+  const dot = document.getElementById('chart-dot');
+  line.style.display = 'block';
+  line.style.left = p.x + 'px';
+  dot.style.display = 'block';
+  dot.style.left = p.x + 'px';
+  dot.style.top = p.y + 'px';
+}
+
+function getClosestIdx(clientX) {
+  const wrap = document.getElementById('chart-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const x = clientX - rect.left;
+  if (!chartPoints.length) return -1;
+  let best = 0, bestDist = Infinity;
+  chartPoints.forEach((p, i) => {
+    const d = Math.abs(p.x - x);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  return best;
+}
+
+// Touch/mouse events for slider
+const wrap = document.getElementById('chart-wrap');
+function handleMove(clientX) {
+  if (!chartPoints.length) return;
+  const idx = getClosestIdx(clientX);
+  if (idx >= 0) updateTooltip(idx);
+}
+wrap.addEventListener('mousemove', e => handleMove(e.clientX));
+wrap.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive: false});
+wrap.addEventListener('touchstart', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive: false});
+wrap.addEventListener('click', e => handleMove(e.clientX));
+
+// ─── PWA Install ───
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+});
+document.getElementById('close-banner').addEventListener('click', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+// ─── INIT ───
+renderTracker();
+window.addEventListener('resize', () => { if (document.getElementById('page-tracker').classList.contains('active')) renderChart(); });
+</script>
+</body>
+</html>
