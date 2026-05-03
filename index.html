@@ -164,7 +164,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
 
   <div id="content">
     <!-- ══════════ ПРОГНОЗ ══════════ -->
-    <div class="page active" id="page-forecast">
+    <div class="page" id="page-forecast">
 
       <!-- Инфляция -->
       <div class="fb" style="margin-bottom:14px">
@@ -228,7 +228,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           <div class="tile-grid" style="margin-bottom:12px">
             <div class="fi">
               <label>Тип цели</label>
-              <select id="p-goal-type"><option value="apartment">Квартира</option></select>
+              <select id="p-goal-type"><option value="apartment">Жильё</option></select>
             </div>
           </div>
           <!-- Price mode -->
@@ -322,7 +322,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
                     Ключевая ставка ≈ (инфляция + доходность) / 2.<br>
                     Необлагаемый минимум = 1 000 000 ₽ × ключевую ставку.<br>
                     Налог = 13% × max(0, доход − минимум).<br>
-                    Если налог &lt; 100 ₽ — ставится 0.
+                    Если доход не превышает необлагаемый минимум, ставится 0.
                   </div>
                 </div>
               </th>
@@ -338,7 +338,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
     </div>
 
     <!-- ══════════ НАКОПЛЕНИЯ ══════════ -->
-    <div class="page" id="page-tracker">
+    <div class="page active" id="page-tracker">
 
       <div class="savebar">
         <button class="btn-sm" onclick="exportCSV()">⬇ Выгрузить данные</button>
@@ -392,13 +392,13 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
   </div>
 
   <nav id="nav">
-    <button class="nb on" id="nb-forecast" onclick="showPage('forecast')">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-      <span>Прогноз</span>
-    </button>
-    <button class="nb" id="nb-tracker" onclick="showPage('tracker')">
+    <button class="nb on" id="nb-tracker" onclick="showPage('tracker')">
       <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
       <span>Накопления</span>
+    </button>
+    <button class="nb" id="nb-forecast" onclick="showPage('forecast')">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span>Прогноз</span>
     </button>
   </nav>
 </div>
