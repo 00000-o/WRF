@@ -7,368 +7,365 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Накопления">
-<meta name="description" content="Прогноз и трекер накоплений">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Накопления</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --red: #E8001C;
-    --red-light: #FFF0F2;
-    --red-mid: #FFD6DA;
-    --red-dark: #B5001A;
-    --text: #0D0D0D;
-    --text-2: #5A5A5A;
-    --text-3: #9A9A9A;
-    --bg: #FFFFFF;
-    --bg-2: #F7F7F7;
-    --bg-3: #EFEFEF;
-    --border: rgba(0,0,0,0.08);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --nav-h: 68px;
-    --safe-b: env(safe-area-inset-bottom, 0px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; overflow: hidden; }
-  body {
-    font-family: 'Manrope', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    -webkit-font-smoothing: antialiased;
-  }
+:root {
+  --red: #E8001C; --red-l: #FFF0F2; --red-m: #FFD6DA; --red-d: #B5001A;
+  --text: #0D0D0D; --t2: #5A5A5A; --t3: #9A9A9A;
+  --bg: #fff; --bg2: #F7F7F7; --bg3: #EFEFEF;
+  --bdr: rgba(0,0,0,0.08); --r: 14px; --rs: 10px;
+  --nav: 64px; --sb: env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Manrope',-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100%}
 
-  /* ─── App Shell ─── */
-  #app { display: flex; flex-direction: column; height: 100%; }
-  #header {
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px 14px;
-    flex-shrink: 0;
-    display: flex; align-items: center; gap: 10px;
-  }
-  #header .logo { width: 32px; height: 32px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  #header .logo svg { width: 18px; height: 18px; fill: white; }
-  #header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
-  #header .subtitle { font-size: 11px; color: var(--text-3); font-weight: 500; margin-top: 1px; }
+/* Header */
+#hdr{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px 12px;flex-shrink:0;display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo svg{width:16px;height:16px;fill:white}
+.hdr-text .t1{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.hdr-text .t2{font-size:10px;color:var(--t3);font-weight:500}
 
-  #content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: calc(var(--nav-h) + var(--safe-b) + 8px); }
-  .page { display: none; padding: 20px; }
-  .page.active { display: block; }
+/* Content */
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav) + var(--sb) + 4px)}
+.page{display:none;padding:18px}
+.page.active{display:block}
 
-  /* ─── Nav ─── */
-  #nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: calc(var(--nav-h) + var(--safe-b));
-    padding-bottom: var(--safe-b);
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    display: flex;
-    z-index: 100;
-  }
-  .nav-btn {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 5px; background: none; border: none; cursor: pointer;
-    color: var(--text-3); font-family: inherit; transition: color 0.15s;
-  }
-  .nav-btn.active { color: var(--red); }
-  .nav-btn svg { width: 22px; height: 22px; fill: currentColor; transition: transform 0.15s; }
-  .nav-btn.active svg { transform: scale(1.1); }
-  .nav-btn span { font-size: 11px; font-weight: 600; }
+/* Nav */
+#nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav) + var(--sb));padding-bottom:var(--sb);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);display:flex;z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--t3);font-family:inherit;transition:color .15s}
+.nb.on{color:var(--red)}
+.nb svg{width:22px;height:22px;fill:currentColor}
+.nb span{font-size:10.5px;font-weight:600}
 
-  /* ─── Section titles ─── */
-  .sec-title {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-    color: var(--text-3); text-transform: uppercase; margin-bottom: 14px;
-  }
+/* Section label */
+.slbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
 
-  /* ─── Param cards ─── */
-  .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
-  .param-card {
-    background: var(--bg-2); border-radius: var(--radius-sm);
-    padding: 14px 14px 12px; border: 1px solid var(--border);
-  }
-  .param-card .p-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin-bottom: 5px; line-height: 1.3; }
-  .param-card .p-value { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-  .param-card.red { background: var(--red-light); border-color: var(--red-mid); }
-  .param-card.red .p-value { color: var(--red); }
+/* Card */
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px}
+.card+.card{margin-top:10px}
+.card.red-c{background:var(--red-l);border-color:var(--red-m)}
 
-  /* ─── Forecast Table ─── */
-  .table-scroll { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 600px; }
-  thead th {
-    font-size: 10.5px; font-weight: 700; color: var(--text-3);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    padding: 0 8px 10px; text-align: right; white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
-  thead th:first-child { text-align: left; }
-  tbody tr { transition: background 0.1s; }
-  tbody tr:active { background: var(--bg-2); }
-  tbody td {
-    padding: 10px 8px; text-align: right;
-    border-bottom: 1px solid var(--border);
-    font-variant-numeric: tabular-nums; white-space: nowrap;
-    font-size: 12.5px; color: var(--text);
-  }
-  tbody td:first-child { text-align: left; font-weight: 700; color: var(--text); }
-  .milestone-row td { color: var(--red) !important; background: var(--red-light); }
-  .milestone-row td:first-child { border-left: 3px solid var(--red); padding-left: 5px; }
+/* Field inside card */
+.f-label{font-size:10.5px;color:var(--t3);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.f-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input[type=number],input[type=text]{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color .15s;min-width:0}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--red)}
+input[type=date]{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color .15s}
+input[type=date]:focus{border-color:var(--red)}
+.inp-unit{font-size:13px;color:var(--t3);font-weight:600;white-space:nowrap}
+.inp-wide{width:100%}
+.inp-med{width:130px}
+.inp-sm{width:80px}
 
-  /* ─── Tracker page ─── */
-  .summary-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
-  .sum-card {
-    background: var(--bg-2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 14px 12px;
-    text-align: center;
-  }
-  .sum-card .s-label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .sum-card .s-val { font-size: 15px; font-weight: 700; letter-spacing: -0.4px; }
-  .sum-card.highlight { background: var(--red); border-color: var(--red); }
-  .sum-card.highlight .s-label { color: rgba(255,255,255,0.7); }
-  .sum-card.highlight .s-val { color: #fff; }
-  .delta-pos { color: #1AAF5D; }
-  .delta-neg { color: var(--red); }
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.toggle-row .tl{font-size:13px;font-weight:500;color:var(--t2)}
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:24px;transition:.2s}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked+.slider{background:var(--red)}
+input:checked+.slider:before{transform:translateX(18px)}
 
-  /* ─── Chart area ─── */
-  .chart-section { margin-bottom: 24px; }
-  .chart-display {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-  }
-  .chart-tooltip-bar {
-    padding: 16px 16px 6px;
-    min-height: 72px;
-  }
-  .ct-date { font-size: 12px; color: var(--text-3); font-weight: 500; margin-bottom: 4px; }
-  .ct-value { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); }
-  .ct-delta { font-size: 12px; font-weight: 600; margin-top: 2px; }
-  .chart-canvas-wrap { position: relative; width: 100%; height: 180px; cursor: crosshair; user-select: none; }
-  canvas#chart { display: block; width: 100%; height: 100%; }
-  .chart-slider-line {
-    position: absolute; top: 0; bottom: 0; width: 1px;
-    background: var(--red); pointer-events: none; display: none;
-  }
-  .chart-dot {
-    position: absolute; width: 10px; height: 10px;
-    background: var(--red); border: 2px solid white;
-    border-radius: 50%; pointer-events: none; display: none;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 3px rgba(232,0,28,0.2);
-  }
-  .x-axis-labels {
-    display: flex; justify-content: space-between;
-    padding: 6px 12px 12px;
-    font-size: 10px; color: var(--text-3); font-weight: 500;
-  }
-  .empty-chart {
-    height: 180px; display: flex; align-items: center; justify-content: center;
-    color: var(--text-3); font-size: 13px; font-weight: 500;
-    flex-direction: column; gap: 8px;
-  }
-  .empty-chart svg { width: 36px; height: 36px; fill: var(--bg-3); }
+/* Select */
+select{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A9A9A'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;width:100%}
 
-  /* ─── Add entry form ─── */
-  .add-form {
-    background: var(--bg-2); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 16px; margin-bottom: 24px;
-  }
-  .form-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
-  .form-row { display: flex; gap: 10px; }
-  .field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 11px; font-weight: 600; color: var(--text-2); }
-  .field input {
-    padding: 12px 12px; border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm); font-family: inherit;
-    font-size: 14px; background: var(--bg); color: var(--text);
-    outline: none; -webkit-appearance: none; transition: border-color 0.15s;
-    font-weight: 500;
-  }
-  .field input:focus { border-color: var(--red); }
-  .btn-add {
-    width: 100%; margin-top: 12px; padding: 14px;
-    background: var(--red); color: white; border: none;
-    border-radius: var(--radius-sm); font-family: inherit;
-    font-size: 15px; font-weight: 700; cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    letter-spacing: -0.2px;
-  }
-  .btn-add:active { background: var(--red-dark); transform: scale(0.98); }
-  .err-msg { font-size: 12px; color: var(--red); margin-top: 8px; font-weight: 500; display: none; }
+/* Radio pill group */
+.pill-group{display:flex;background:var(--bg3);border-radius:var(--rs);padding:3px;gap:2px}
+.pill-opt{flex:1;text-align:center;padding:7px 4px;font-size:12px;font-weight:600;color:var(--t2);border-radius:7px;cursor:pointer;transition:all .15s;user-select:none}
+.pill-opt.on{background:var(--bg);color:var(--red);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 
-  /* ─── Entries list ─── */
-  .entries-section { }
-  .entry-item {
-    display: flex; align-items: center;
-    padding: 13px 0; border-bottom: 1px solid var(--border);
-    gap: 12px;
-  }
-  .entry-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--red); flex-shrink: 0;
-  }
-  .entry-info { flex: 1; }
-  .entry-date { font-size: 12px; color: var(--text-3); font-weight: 500; }
-  .entry-amt { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-  .entry-del {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-3); font-size: 18px; padding: 4px 8px;
-    border-radius: 6px; transition: color 0.15s;
-  }
-  .entry-del:active { color: var(--red); }
+/* Accordion */
+.acc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0}
+.acc-head .ah-title{font-size:14px;font-weight:700}
+.acc-head .ah-val{font-size:13px;color:var(--t2);font-weight:500}
+.acc-arrow{width:18px;height:18px;fill:var(--t3);transition:transform .2s;flex-shrink:0}
+.acc-body{overflow:hidden;transition:max-height .25s ease;max-height:0}
+.acc-body.open{max-height:600px}
+.acc-div{height:1px;background:var(--bdr);margin:12px 0}
 
-  /* ─── Scrollbar ─── */
-  #content::-webkit-scrollbar { width: 3px; }
-  #content::-webkit-scrollbar-track { background: transparent; }
-  #content::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+/* Rate rows */
+.rate-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rate-row .rlbl{font-size:13px;color:var(--t2);font-weight:500;min-width:50px}
+.btn-small{padding:7px 12px;border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:700;border:1.5px solid var(--bdr);background:var(--bg);color:var(--t2);cursor:pointer;transition:all .15s}
+.btn-small:active{background:var(--bg3)}
+.btn-icon{padding:7px 10px;background:var(--bg3);border:none;border-radius:var(--rs);font-size:16px;cursor:pointer;color:var(--t2);font-weight:700}
+.btn-red-outline{padding:8px 14px;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all .15s}
+.btn-red-outline:active{background:var(--red-l)}
 
-  /* ─── Install banner ─── */
-  #install-banner {
-    display: none; position: fixed; top: 0; left: 0; right: 0;
-    background: var(--red); color: white; padding: 12px 16px;
-    font-size: 13px; font-weight: 600; z-index: 200;
-    justify-content: space-between; align-items: center;
-    gap: 10px;
-  }
-  #install-banner button {
-    background: white; color: var(--red); border: none;
-    padding: 6px 14px; border-radius: 6px;
-    font-family: inherit; font-size: 12px; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
-  }
-  #install-banner .close-btn {
-    background: none; color: rgba(255,255,255,0.7); padding: 4px;
-    font-size: 18px; min-width: auto;
-  }
+/* Save button */
+.btn-save{width:100%;margin-top:14px;padding:13px;background:var(--red);color:white;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-save:active{opacity:.8}
+.btn-add{width:100%;margin-top:12px;padding:13px;background:var(--red);color:white;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-add:active{opacity:.8}
+
+/* Forecast section label */
+.deposit-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dep-val{font-size:22px;font-weight:700;color:var(--red);letter-spacing:-.5px}
+.dep-sub{font-size:12px;color:var(--t3);font-weight:500}
+
+/* Table */
+.tscroll{overflow-x:auto;margin:0 -18px;padding:0 18px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
+thead th{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;padding:0 6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--bdr)}
+thead th:first-child{text-align:left}
+tbody td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--bdr);white-space:nowrap;font-size:12px;color:var(--text)}
+tbody td:first-child{text-align:left;font-weight:700}
+.ms-row td{color:var(--red)!important;background:var(--red-l)}
+.ms-row td:first-child{border-left:3px solid var(--red);padding-left:3px}
+
+/* Tracker summary */
+.sum-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.sc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 10px;text-align:center}
+.sc.hi{background:var(--red);border-color:var(--red)}
+.sc .sl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.sc.hi .sl{color:rgba(255,255,255,.7)}
+.sc .sv{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.sc.hi .sv{color:#fff}
+.dpos{color:#1AAF5D}.dneg{color:var(--red)}
+
+/* Chart */
+.chart-box{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+.chart-tip{padding:14px 14px 6px;min-height:70px}
+.ct-date{font-size:12px;color:var(--t3);font-weight:500;margin-bottom:3px}
+.ct-val{font-size:25px;font-weight:700;letter-spacing:-.7px}
+.ct-delta{font-size:12px;font-weight:600;margin-top:2px}
+.chart-wrap{position:relative;width:100%;height:180px;cursor:crosshair;user-select:none}
+canvas#chart{display:block;width:100%;height:100%}
+.s-line{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);pointer-events:none;display:none}
+.s-dot{position:absolute;width:10px;height:10px;background:var(--red);border:2.5px solid #fff;border-radius:50%;pointer-events:none;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(232,0,28,.18)}
+.chart-empty{height:180px;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;font-weight:500}
+
+/* Add form */
+.add-form{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:20px}
+.form-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.form-fields{display:flex;gap:10px}
+.ff{flex:1;display:flex;flex-direction:column;gap:5px}
+.ff label{font-size:10.5px;font-weight:600;color:var(--t2)}
+.err{font-size:12px;color:var(--red);margin-top:6px;font-weight:500;display:none}
+
+/* Entry list */
+.entry-item{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--bdr);gap:10px}
+.e-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+.e-info{flex:1}
+.e-date{font-size:11.5px;color:var(--t3);font-weight:500}
+.e-amt{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.e-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:18px;padding:4px 8px;border-radius:6px}
+.e-del:active{color:var(--red)}
+
+/* Scrollbar */
+#content::-webkit-scrollbar{width:3px}
+#content::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
+
+/* Install banner */
+#ibanner{display:none;position:fixed;top:0;left:0;right:0;background:var(--red);color:white;padding:11px 14px;font-size:13px;font-weight:600;z-index:200;justify-content:space-between;align-items:center;gap:8px}
+#ibanner .ib-btn{background:white;color:var(--red);border:none;padding:5px 12px;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#ibanner .ib-close{background:none;color:rgba(255,255,255,.7);border:none;font-size:20px;cursor:pointer;padding:2px}
+
+.mb12{margin-bottom:12px}
+.mb20{margin-bottom:20px}
+.mt8{margin-top:8px}
+.mt10{margin-top:10px}
+.gap8{gap:8px}
 </style>
 </head>
 <body>
 
-<div id="install-banner">
+<div id="ibanner">
   <span>Установите приложение на экран</span>
-  <button id="install-btn">Установить</button>
-  <button class="close-btn" id="close-banner">✕</button>
+  <button class="ib-btn" id="ibtn">Установить</button>
+  <button class="ib-close" id="iclose">✕</button>
 </div>
 
 <div id="app">
-  <div id="header">
+  <div id="hdr">
     <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
     </div>
-    <div>
-      <div style="font-size:17px;font-weight:700;letter-spacing:-0.3px">Накопления</div>
-      <div style="font-size:11px;color:var(--text-3);font-weight:500">Прогноз и трекер</div>
+    <div class="hdr-text">
+      <div class="t1">Накопления</div>
+      <div class="t2">Прогноз и трекер</div>
     </div>
   </div>
 
   <div id="content">
-    <!-- PAGE 1: FORECAST -->
+
+    <!-- ═══ PAGE: FORECAST ═══ -->
     <div class="page active" id="page-forecast">
-      <div class="sec-title">Параметры</div>
-      <div class="params-grid">
-        <div class="param-card red"><div class="p-label">Стартовый депозит</div><div class="p-value">1 215 515 ₽</div></div>
-        <div class="param-card"><div class="p-label">Подушка безопасности</div><div class="p-value">200 755 ₽</div></div>
-        <div class="param-card"><div class="p-label">Взнос в месяц</div><div class="p-value">67 000 ₽</div></div>
-        <div class="param-card"><div class="p-label">Стоимость жилья</div><div class="p-value">24 500 000 ₽</div></div>
-        <div class="param-card"><div class="p-label">Рост цен на жильё</div><div class="p-value">6% / год</div></div>
-        <div class="param-card"><div class="p-label">Первоначальный взнос</div><div class="p-value">70%</div></div>
-        <div class="param-card"><div class="p-label">Доходность '25–'28</div><div class="p-value">14%</div></div>
-        <div class="param-card"><div class="p-label">Доходность '29–'32</div><div class="p-value">13%</div></div>
-        <div class="param-card"><div class="p-label">Доходность '33–'36</div><div class="p-value">12%</div></div>
-        <div class="param-card"><div class="p-label">Доходность '37–'40</div><div class="p-value">11%</div></div>
+
+      <!-- Стартовый депозит -->
+      <div class="slbl">Стартовый депозит</div>
+      <div class="card red-c mb12">
+        <div class="f-label">Источник</div>
+        <div class="pill-group mb12" id="dep-source-pills">
+          <div class="pill-opt on" data-v="manual" onclick="setDepSource('manual')">Вручную</div>
+          <div class="pill-opt" data-v="tracker" onclick="setDepSource('tracker')">Из накоплений</div>
+        </div>
+        <div id="dep-manual-block">
+          <div class="f-row">
+            <input type="number" class="inp-med" id="inp-deposit" value="1000000" min="0" step="1000">
+            <span class="inp-unit">₽</span>
+          </div>
+        </div>
+        <div id="dep-tracker-block" style="display:none">
+          <div style="font-size:13px;color:var(--t2);font-weight:500" id="dep-tracker-val">—</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:3px" id="dep-tracker-date"></div>
+        </div>
       </div>
 
-      <div class="sec-title">Прогноз по годам</div>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Год</th>
-              <th>Нач. года</th>
-              <th>Взносы</th>
-              <th>Начисл. %</th>
-              <th>Налог</th>
-              <th>Кон. года</th>
-              <th>Цена жилья</th>
-              <th>Треб. взнос</th>
-              <th>Доля</th>
-            </tr>
-          </thead>
-          <tbody id="forecast-tbody"></tbody>
-        </table>
+      <!-- Подушка безопасности -->
+      <div class="card mb12">
+        <div class="f-label">Подушка безопасности</div>
+        <div class="f-row mb12">
+          <input type="number" class="inp-med" id="inp-cushion" value="100000" min="0" step="1000">
+          <span class="inp-unit">₽</span>
+        </div>
+        <div class="toggle-row">
+          <span class="tl">Не учитывать в накоплениях</span>
+          <label class="switch"><input type="checkbox" id="tog-cushion"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- Взнос в месяц -->
+      <div class="card mb20">
+        <div class="f-label">Взнос в месяц</div>
+        <div class="f-row">
+          <input type="number" class="inp-med" id="inp-monthly" value="10000" min="0" step="500">
+          <span class="inp-unit">₽</span>
+        </div>
+      </div>
+
+      <!-- Цель -->
+      <div class="slbl">Выбрать цель</div>
+      <div class="card mb12" id="goal-card">
+        <div class="acc-head" onclick="toggleAcc('goal')">
+          <div>
+            <div class="ah-title">Квартира</div>
+            <div class="ah-val" id="goal-summary">10 000 000 ₽ · 50% взнос</div>
+          </div>
+          <svg class="acc-arrow" id="arr-goal" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        </div>
+        <div class="acc-body" id="body-goal">
+          <div class="acc-div"></div>
+          <div class="f-label">Стоимость жилья</div>
+          <div class="f-row mb12">
+            <input type="number" class="inp-med" id="inp-price" value="10000000" min="0" step="100000">
+            <span class="inp-unit">₽</span>
+          </div>
+          <div class="f-label">Рост цен на жильё</div>
+          <div class="f-row mb12">
+            <input type="number" class="inp-sm" id="inp-growth" value="5" min="0" max="30" step="0.5">
+            <span class="inp-unit">% в год</span>
+          </div>
+          <div class="f-label">Первоначальный взнос</div>
+          <div class="f-row">
+            <input type="number" class="inp-sm" id="inp-down" value="50" min="1" max="100" step="1">
+            <span class="inp-unit">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Доходность -->
+      <div class="slbl mb12">Средняя доходность активов</div>
+      <div class="card mb12">
+        <div class="pill-group mb12" id="rate-type-pills">
+          <div class="pill-opt on" data-v="fixed" onclick="setRateType('fixed')">Фиксированная</div>
+          <div class="pill-opt" data-v="flex" onclick="setRateType('flex')">Гибкая</div>
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:12px" id="rate-hint">Одинаковый процент доходности на все годы</div>
+
+        <!-- Fixed rate -->
+        <div id="rate-fixed-block">
+          <div class="f-row">
+            <input type="number" class="inp-sm" id="inp-fixed-rate" value="10" min="0" max="50" step="0.5">
+            <span class="inp-unit">% в год</span>
+          </div>
+        </div>
+
+        <!-- Flex rates -->
+        <div id="rate-flex-block" style="display:none">
+          <div id="flex-rates-list"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn-red-outline" onclick="addRateYear()">+ год</button>
+            <button class="btn-small" onclick="removeRateYear()">Удалить</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="calcForecast()">Рассчитать прогноз</button>
+
+      <!-- Forecast table -->
+      <div id="forecast-result" style="display:none;margin-top:24px">
+        <div class="slbl">Прогноз по годам</div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>Год</th><th>Нач. года</th><th>Взносы</th><th>% доход</th><th>Кон. года</th><th>Цена жилья</th><th>Треб. взнос</th><th>Доля</th>
+            </tr></thead>
+            <tbody id="ftbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- PAGE 2: TRACKER -->
+    <!-- ═══ PAGE: TRACKER ═══ -->
     <div class="page" id="page-tracker">
-      <div class="summary-strip">
-        <div class="sum-card highlight">
-          <div class="s-label">Последнее</div>
-          <div class="s-val" id="last-val">—</div>
-        </div>
-        <div class="sum-card">
-          <div class="s-label">Прирост</div>
-          <div class="s-val" id="delta-val">—</div>
-        </div>
-        <div class="sum-card">
-          <div class="s-label">Записей</div>
-          <div class="s-val" id="count-val">0</div>
-        </div>
+      <div class="sum-strip">
+        <div class="sc hi"><div class="sl">Последнее</div><div class="sv" id="v-last">—</div></div>
+        <div class="sc"><div class="sl">Прирост</div><div class="sv" id="v-delta">—</div></div>
+        <div class="sc"><div class="sl">Записей</div><div class="sv" id="v-cnt">0</div></div>
       </div>
 
-      <div class="chart-section">
-        <div class="sec-title">График накоплений</div>
-        <div class="chart-display">
-          <div class="chart-tooltip-bar" id="tooltip-bar">
-            <div class="ct-date" id="tooltip-date">Нет данных</div>
-            <div class="ct-value" id="tooltip-value">—</div>
-            <div class="ct-delta" id="tooltip-delta"></div>
-          </div>
-          <div class="chart-canvas-wrap" id="chart-wrap">
-            <div class="empty-chart" id="empty-chart">
-              <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-              Добавьте запись для отображения
-            </div>
-            <canvas id="chart" style="display:none"></canvas>
-            <div class="chart-slider-line" id="slider-line"></div>
-            <div class="chart-dot" id="chart-dot"></div>
-          </div>
-          <div class="x-axis-labels" id="x-labels"></div>
+      <div class="slbl">График накоплений</div>
+      <div class="chart-box">
+        <div class="chart-tip">
+          <div class="ct-date" id="ct-date">Нет данных</div>
+          <div class="ct-val" id="ct-val">—</div>
+          <div class="ct-delta" id="ct-delta"></div>
+        </div>
+        <div class="chart-wrap" id="chart-wrap">
+          <div class="chart-empty" id="chart-empty">Добавьте запись для отображения</div>
+          <canvas id="chart" style="display:none"></canvas>
+          <div class="s-line" id="s-line"></div>
+          <div class="s-dot" id="s-dot"></div>
         </div>
       </div>
 
       <div class="add-form">
         <div class="form-title">Добавить запись</div>
-        <div class="form-row">
-          <div class="field">
+        <div class="form-fields">
+          <div class="ff">
             <label>Дата</label>
-            <input type="date" id="entry-date">
+            <input type="date" id="inp-date">
           </div>
-          <div class="field">
+          <div class="ff">
             <label>Сумма (₽)</label>
-            <input type="number" id="entry-amount" placeholder="0" step="1000" inputmode="numeric">
+            <input type="number" id="inp-amt" placeholder="0" step="1000" inputmode="numeric">
           </div>
         </div>
-        <div class="err-msg" id="err-msg">Заполните все поля корректно</div>
-        <button class="btn-add" id="add-btn">Добавить</button>
+        <div class="err" id="err">Заполните все поля</div>
+        <button class="btn-add" onclick="addEntry()">Добавить</button>
       </div>
 
-      <div class="entries-section">
-        <div class="sec-title">История</div>
-        <div id="entries-list"></div>
-        <div id="no-entries" style="color:var(--text-3);font-size:13px;font-weight:500;padding:12px 0">Записей пока нет</div>
-      </div>
+      <div class="slbl">История</div>
+      <div id="entries-list"></div>
+      <div id="no-entries" style="color:var(--t3);font-size:13px;padding:8px 0">Записей пока нет</div>
     </div>
+
   </div>
 
   <nav id="nav">
-    <button class="nav-btn active" id="btn-forecast" onclick="showPage('forecast')">
+    <button class="nb on" id="nb-forecast" onclick="showPage('forecast')">
       <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       <span>Прогноз</span>
     </button>
-    <button class="nav-btn" id="btn-tracker" onclick="showPage('tracker')">
+    <button class="nb" id="nb-tracker" onclick="showPage('tracker')">
       <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
       <span>Накопления</span>
     </button>
@@ -376,158 +373,351 @@
 </div>
 
 <script>
-// ─── DATA ───
-const FORECAST = [
-  {y:2025,s:null,c:null,i:null,t:null,e:1200000,h:24500000,r:17150000,sh:0.070},
-  {y:2026,s:1215515,c:569500,i:44758,t:0,e:1829773,h:25970000,r:18179000,sh:0.101},
-  {y:2027,s:1829773,c:804000,i:256168,t:12502,e:2877439,h:27528200,r:19269740,sh:0.149},
-  {y:2028,s:2877439,c:804000,i:402841,t:31569,e:4052711,h:29179892,r:20425924,sh:0.198},
-  {y:2029,s:4052711,c:804000,i:526852,t:48991,e:5334573,h:30930686,r:21651480,sh:0.246},
-  {y:2030,s:5334573,c:804000,i:693494,t:70654,e:6761413,h:32786527,r:22950569,sh:0.295},
-  {y:2031,s:6761413,c:804000,i:878984,t:94768,e:8349629,h:34753718,r:24327603,sh:0.343},
-  {y:2032,s:8349629,c:804000,i:1085452,t:121609,e:10117472,h:36838941,r:25787259,sh:0.392},
-  {y:2033,s:10117472,c:804000,i:1214097,t:139633,e:11995936,h:39049278,r:27334494,sh:0.439},
-  {y:2034,s:11995936,c:804000,i:1439512,t:168937,e:14070511,h:41392235,r:28974564,sh:0.486},
-  {y:2035,s:14070511,c:804000,i:1688461,t:201300,e:16361673,h:43875769,r:30713038,sh:0.533},
-  {y:2036,s:16361673,c:804000,i:1963401,t:237042,e:18892031,h:46508315,r:32555820,sh:0.580},
-  {y:2037,s:18892031,c:804000,i:2078123,t:253256,e:21520899,h:49298814,r:34509169,sh:0.624},
-  {y:2038,s:21520899,c:804000,i:2367299,t:290849,e:24401349,h:52256742,r:36579720,sh:0.667},
-  {y:2039,s:24401349,c:804000,i:2684148,t:332039,e:27557458,h:55392147,r:38774503,sh:0.711},
-  {y:2040,s:27557458,c:804000,i:3031320,t:377172,e:31015606,h:58715676,r:41100973,sh:0.755},
-  {y:2041,s:31015606,c:804000,i:3101561,t:387603,e:34533564,h:62238616,r:43567031,sh:0.793},
-  {y:2042,s:34533564,c:804000,i:3453356,t:433336,e:38357584,h:65972933,r:46181053,sh:0.831},
-  {y:2043,s:38357584,c:804000,i:3835758,t:483049,e:42514294,h:69931309,r:48951916,sh:0.868},
-  {y:2044,s:42514294,c:804000,i:4251429,t:537086,e:47032638,h:74127188,r:51889031,sh:0.906},
-  {y:2045,s:47032638,c:804000,i:4703264,t:595824,e:51944077,h:78574819,r:55002373,sh:0.944},
-  {y:2046,s:51944077,c:804000,i:5194408,t:659673,e:57282812,h:83289308,r:58302516,sh:0.983},
-  {y:2047,s:57282812,c:804000,i:5728281,t:729077,e:63086017,h:88286667,r:61800667,sh:1.021},
-  {y:2048,s:63086017,c:804000,i:6308602,t:804518,e:69394100,h:93583867,r:65508707,sh:1.059},
-  {y:2049,s:69394100,c:804000,i:6939410,t:886523,e:76250987,h:99198899,r:69439229,sh:1.098},
-];
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let depSource = 'manual';
+let rateType = 'fixed';
+let flexRates = []; // [{year, rate}]
+let entries = JSON.parse(localStorage.getItem('sv_entries') || '[]');
 
-function fmt(n) {
-  if (n === null || n === undefined) return '—';
-  if (n >= 1e6) return (n/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' млн ₽';
-  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+// Init flex rates: current year + 2
+function initFlexRates() {
+  const y = new Date().getFullYear();
+  flexRates = [
+    {year: y, rate: 10},
+    {year: y+1, rate: 10},
+    {year: y+2, rate: 10}
+  ];
 }
-function fmtFull(n) {
-  if (n === null || n === undefined) return '—';
-  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
-}
+initFlexRates();
 
-// ─── BUILD FORECAST TABLE ───
-const tb = document.getElementById('forecast-tbody');
-FORECAST.forEach(r => {
-  const milestone = r.sh >= 0.98 && r.sh < 1.04;
-  const tr = document.createElement('tr');
-  if (milestone) tr.className = 'milestone-row';
-  tr.innerHTML = `<td>${r.y}</td><td>${fmt(r.s)}</td><td>${fmt(r.c)}</td><td>${fmt(r.i)}</td><td>${fmt(r.t)}</td><td>${fmt(r.e)}</td><td>${fmt(r.h)}</td><td>${fmt(r.r)}</td><td>${(r.sh*100).toFixed(1)}%</td>`;
-  tb.appendChild(tr);
-});
-
-// ─── NAV ───
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
 function showPage(name) {
   ['forecast','tracker'].forEach(p => {
     document.getElementById('page-'+p).classList.toggle('active', p===name);
-    document.getElementById('btn-'+p).classList.toggle('active', p===name);
+    document.getElementById('nb-'+p).classList.toggle('on', p===name);
   });
-  if (name === 'tracker') renderChart();
+  if (name === 'tracker') { renderTracker(); }
 }
 
-// ─── STORAGE ───
-let entries = JSON.parse(localStorage.getItem('savings_entries') || '[]');
-function save() { localStorage.setItem('savings_entries', JSON.stringify(entries)); }
+// ══════════════════════════════════════════
+// ACCORDION
+// ══════════════════════════════════════════
+function toggleAcc(id) {
+  const body = document.getElementById('body-'+id);
+  const arr = document.getElementById('arr-'+id);
+  const open = body.classList.toggle('open');
+  arr.style.transform = open ? 'rotate(180deg)' : '';
+}
 
-// ─── ADD ENTRY ───
-document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
-document.getElementById('add-btn').addEventListener('click', () => {
-  const d = document.getElementById('entry-date').value;
-  const a = parseFloat(document.getElementById('entry-amount').value);
-  const err = document.getElementById('err-msg');
+// ══════════════════════════════════════════
+// DEPOSIT SOURCE
+// ══════════════════════════════════════════
+function setDepSource(v) {
+  depSource = v;
+  document.querySelectorAll('#dep-source-pills .pill-opt').forEach(el => {
+    el.classList.toggle('on', el.dataset.v === v);
+  });
+  document.getElementById('dep-manual-block').style.display = v === 'manual' ? '' : 'none';
+  document.getElementById('dep-tracker-block').style.display = v === 'tracker' ? '' : 'none';
+  if (v === 'tracker') updateTrackerDepDisplay();
+}
+
+function updateTrackerDepDisplay() {
+  const val = document.getElementById('dep-tracker-val');
+  const dt = document.getElementById('dep-tracker-date');
+  if (entries.length === 0) {
+    val.textContent = 'Нет данных в накоплениях';
+    dt.textContent = '';
+  } else {
+    const last = entries[entries.length-1];
+    val.textContent = Math.round(last.amount).toLocaleString('ru-RU') + ' ₽';
+    dt.textContent = 'Последняя запись: ' + fmtDate(last.date);
+  }
+}
+
+// ══════════════════════════════════════════
+// RATE TYPE
+// ══════════════════════════════════════════
+function setRateType(v) {
+  rateType = v;
+  document.querySelectorAll('#rate-type-pills .pill-opt').forEach(el => {
+    el.classList.toggle('on', el.dataset.v === v);
+  });
+  document.getElementById('rate-hint').textContent = v === 'fixed'
+    ? 'Одинаковый процент доходности на все годы'
+    : 'Различные проценты в зависимости от года';
+  document.getElementById('rate-fixed-block').style.display = v === 'fixed' ? '' : 'none';
+  document.getElementById('rate-flex-block').style.display = v === 'flex' ? '' : 'none';
+  if (v === 'flex') renderFlexRates();
+}
+
+function renderFlexRates() {
+  const list = document.getElementById('flex-rates-list');
+  list.innerHTML = '';
+  flexRates.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'rate-row';
+    row.innerHTML = `<span class="rlbl">${r.year}</span>
+      <input type="number" style="width:70px;padding:7px 9px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none" 
+        value="${r.rate}" min="0" max="50" step="0.5"
+        onchange="flexRates[${i}].rate=parseFloat(this.value)||0">
+      <span class="inp-unit">%</span>`;
+    list.appendChild(row);
+  });
+}
+
+function addRateYear() {
+  const lastYear = flexRates.length ? flexRates[flexRates.length-1].year : new Date().getFullYear();
+  const lastRate = flexRates.length ? flexRates[flexRates.length-1].rate : 10;
+  flexRates.push({year: lastYear+1, rate: lastRate});
+  renderFlexRates();
+}
+
+function removeRateYear() {
+  if (flexRates.length > 1) { flexRates.pop(); renderFlexRates(); }
+}
+
+// ══════════════════════════════════════════
+// GOAL SUMMARY
+// ══════════════════════════════════════════
+function updateGoalSummary() {
+  const price = parseFloat(document.getElementById('inp-price').value) || 0;
+  const down = parseFloat(document.getElementById('inp-down').value) || 0;
+  const p = price >= 1e6 ? (price/1e6).toFixed(1)+' млн' : price.toLocaleString('ru-RU');
+  document.getElementById('goal-summary').textContent = p + ' ₽ · ' + down + '% взнос';
+}
+['inp-price','inp-down','inp-growth'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateGoalSummary);
+});
+
+// ══════════════════════════════════════════
+// FORECAST CALCULATION
+// ══════════════════════════════════════════
+function getRate(year) {
+  if (rateType === 'fixed') {
+    return (parseFloat(document.getElementById('inp-fixed-rate').value) || 10) / 100;
+  }
+  // flex: find rate for year, or use last one
+  const found = flexRates.find(r => r.year === year);
+  if (found) return found.rate / 100;
+  // if year > last defined, use last rate
+  const last = flexRates[flexRates.length-1];
+  return last ? last.rate / 100 : 0.10;
+}
+
+function getDeposit() {
+  if (depSource === 'tracker' && entries.length > 0) {
+    return entries[entries.length-1].amount;
+  }
+  return parseFloat(document.getElementById('inp-deposit').value) || 0;
+}
+
+function getDepositDate() {
+  if (depSource === 'tracker' && entries.length > 0) {
+    return entries[entries.length-1].date;
+  }
+  return null;
+}
+
+function calcForecast() {
+  const deposit = getDeposit();
+  const cushion = parseFloat(document.getElementById('inp-cushion').value) || 0;
+  const excludeCushion = document.getElementById('tog-cushion').checked;
+  const monthly = parseFloat(document.getElementById('inp-monthly').value) || 0;
+  const price = parseFloat(document.getElementById('inp-price').value) || 0;
+  const growth = (parseFloat(document.getElementById('inp-growth').value) || 5) / 100;
+  const downPct = (parseFloat(document.getElementById('inp-down').value) || 50) / 100;
+
+  const depDate = getDepositDate();
+  const now = new Date();
+  const startYear = depDate ? parseInt(depDate.split('-')[0]) : now.getFullYear();
+  const startMonth = depDate ? parseInt(depDate.split('-')[1]) : now.getMonth() + 1;
+
+  let savings = excludeCushion ? Math.max(0, deposit - cushion) : deposit;
+  let housingPrice = price;
+
+  const rows = [];
+  const MAX_YEARS = 60;
+
+  for (let yi = 0; yi < MAX_YEARS; yi++) {
+    const year = startYear + yi;
+    const rate = getRate(year);
+    const startSav = savings;
+
+    let yearlyContrib, yearlyInterest;
+
+    if (yi === 0 && depDate) {
+      // Partial first year
+      const monthsLeft = 12 - startMonth + 1;
+      yearlyContrib = monthly * monthsLeft;
+      // Interest on starting balance for remaining months + contributions
+      yearlyInterest = startSav * rate * (monthsLeft / 12) + yearlyContrib * rate * (monthsLeft / 24);
+    } else {
+      yearlyContrib = monthly * 12;
+      yearlyInterest = (startSav + yearlyContrib / 2) * rate;
+    }
+
+    // Tax: 13% on interest above 150k (simplified)
+    const taxFree = 150000;
+    const tax = yearlyInterest > taxFree ? (yearlyInterest - taxFree) * 0.13 : 0;
+    savings = startSav + yearlyContrib + yearlyInterest - tax;
+
+    const required = housingPrice * downPct;
+    const share = savings / required;
+
+    rows.push({
+      year, startSav: yi === 0 ? null : startSav,
+      contrib: yi === 0 ? yearlyContrib : yearlyContrib,
+      interest: yearlyInterest, tax, end: savings,
+      housing: housingPrice, required, share
+    });
+
+    housingPrice *= (1 + growth);
+
+    // Stop 2 years after hitting 100%
+    if (share >= 1.0 && rows.filter(r => r.share >= 1.0).length >= 3) break;
+  }
+
+  renderForecastTable(rows);
+  document.getElementById('forecast-result').style.display = '';
+
+  // Scroll to table
+  setTimeout(() => {
+    document.getElementById('forecast-result').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+function fmtM(n) {
+  if (n === null || n === undefined) return '—';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1).replace('.',',') + ' млн';
+  if (Math.abs(n) >= 1e3) return Math.round(n/1e3) + ' тыс';
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+function renderForecastTable(rows) {
+  const tb = document.getElementById('ftbody');
+  tb.innerHTML = '';
+  rows.forEach(r => {
+    const ms = r.share >= 0.98 && r.share < 1.04;
+    const goalMet = r.share >= 1.0;
+    const tr = document.createElement('tr');
+    if (ms) tr.className = 'ms-row';
+    tr.innerHTML = `
+      <td>${r.year}</td>
+      <td>${r.startSav === null ? '—' : fmtM(r.startSav)}</td>
+      <td>${fmtM(r.contrib)}</td>
+      <td>${fmtM(r.interest)}</td>
+      <td>${fmtM(r.end)}</td>
+      <td>${fmtM(r.housing)}</td>
+      <td>${fmtM(r.required)}</td>
+      <td style="font-weight:700;color:${goalMet?'var(--red)':'inherit'}">${(r.share*100).toFixed(1)}%</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+// ══════════════════════════════════════════
+// TRACKER
+// ══════════════════════════════════════════
+function save() { localStorage.setItem('sv_entries', JSON.stringify(entries)); }
+
+document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+
+function addEntry() {
+  const d = document.getElementById('inp-date').value;
+  const a = parseFloat(document.getElementById('inp-amt').value);
+  const err = document.getElementById('err');
   if (!d || isNaN(a) || a <= 0) { err.style.display = ''; return; }
   err.style.display = 'none';
-  entries.push({ date: d, amount: a });
+  entries.push({date: d, amount: a});
   entries.sort((a,b) => a.date.localeCompare(b.date));
   save();
-  document.getElementById('entry-amount').value = '';
+  document.getElementById('inp-amt').value = '';
+  if (depSource === 'tracker') updateTrackerDepDisplay();
   renderTracker();
-});
+}
 
 function deleteEntry(i) {
   entries.splice(i, 1);
   save();
+  if (depSource === 'tracker') updateTrackerDepDisplay();
   renderTracker();
 }
 
-// ─── RENDER TRACKER ───
+function fmtDate(iso) {
+  const [y,m,d] = iso.split('-');
+  const ms = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return `${+d} ${ms[+m-1]} ${y}`;
+}
+
+function fmtShort(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.',',') + ' млн';
+  if (n >= 1e3) return Math.round(n/1e3) + ' тыс';
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
 function renderTracker() {
   const list = document.getElementById('entries-list');
   const noEnt = document.getElementById('no-entries');
   list.innerHTML = '';
+
   if (entries.length === 0) {
     noEnt.style.display = '';
   } else {
     noEnt.style.display = 'none';
     [...entries].reverse().forEach((e, ri) => {
       const i = entries.length - 1 - ri;
-      const d = new Date(e.date + 'T00:00:00');
-      const ds = d.toLocaleDateString('ru-RU', {day:'2-digit',month:'long',year:'numeric'});
       const div = document.createElement('div');
       div.className = 'entry-item';
-      div.innerHTML = `<div class="entry-dot"></div><div class="entry-info"><div class="entry-date">${ds}</div><div class="entry-amt">${Math.round(e.amount).toLocaleString('ru-RU')} ₽</div></div><button class="entry-del" onclick="deleteEntry(${i})">✕</button>`;
+      div.innerHTML = `<div class="e-dot"></div><div class="e-info"><div class="e-date">${fmtDate(e.date)}</div><div class="e-amt">${Math.round(e.amount).toLocaleString('ru-RU')} ₽</div></div><button class="e-del" onclick="deleteEntry(${i})">✕</button>`;
       list.appendChild(div);
     });
   }
 
-  document.getElementById('count-val').textContent = entries.length;
+  document.getElementById('v-cnt').textContent = entries.length;
   if (entries.length > 0) {
     const last = entries[entries.length-1];
-    document.getElementById('last-val').textContent = formatShort(last.amount);
+    document.getElementById('v-last').textContent = fmtShort(last.amount);
     if (entries.length > 1) {
       const delta = last.amount - entries[0].amount;
-      const sign = delta >= 0 ? '+' : '';
-      const el = document.getElementById('delta-val');
-      el.textContent = sign + formatShort(Math.abs(delta));
-      el.className = 's-val ' + (delta >= 0 ? 'delta-pos' : 'delta-neg');
+      const el = document.getElementById('v-delta');
+      el.textContent = (delta>=0?'+':'') + fmtShort(Math.abs(delta));
+      el.className = 'sv ' + (delta>=0?'dpos':'dneg');
     } else {
-      document.getElementById('delta-val').textContent = '—';
-      document.getElementById('delta-val').className = 's-val';
+      const el = document.getElementById('v-delta');
+      el.textContent = '—'; el.className = 'sv';
     }
   } else {
-    document.getElementById('last-val').textContent = '—';
-    document.getElementById('delta-val').textContent = '—';
-    document.getElementById('delta-val').className = 's-val';
+    document.getElementById('v-last').textContent = '—';
+    document.getElementById('v-delta').textContent = '—';
+    document.getElementById('v-delta').className = 'sv';
   }
   renderChart();
 }
 
-function formatShort(n) {
-  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.', ',') + ' млн';
-  if (n >= 1e3) return Math.round(n/1e3) + ' тыс';
-  return Math.round(n).toLocaleString('ru-RU');
-}
-
-// ─── CHART ───
-let chartPoints = [];
+// ══════════════════════════════════════════
+// CHART (canvas, date-accurate x-axis)
+// ══════════════════════════════════════════
+let chartPts = [];
 let activeIdx = -1;
 
 function renderChart() {
   const wrap = document.getElementById('chart-wrap');
   const canvas = document.getElementById('chart');
-  const empty = document.getElementById('empty-chart');
-  const sliderLine = document.getElementById('slider-line');
-  const dot = document.getElementById('chart-dot');
-  const xLabels = document.getElementById('x-labels');
+  const empty = document.getElementById('chart-empty');
 
-  if (entries.length < 1) {
+  if (entries.length === 0) {
     canvas.style.display = 'none';
     empty.style.display = 'flex';
-    sliderLine.style.display = 'none';
-    dot.style.display = 'none';
-    xLabels.innerHTML = '';
-    document.getElementById('tooltip-date').textContent = 'Нет данных';
-    document.getElementById('tooltip-value').textContent = '—';
-    document.getElementById('tooltip-delta').textContent = '';
+    document.getElementById('s-line').style.display = 'none';
+    document.getElementById('s-dot').style.display = 'none';
+    document.getElementById('ct-date').textContent = 'Нет данных';
+    document.getElementById('ct-val').textContent = '—';
+    document.getElementById('ct-delta').textContent = '';
     return;
   }
 
@@ -545,81 +735,129 @@ function renderChart() {
   const ctx = canvas.getContext('2d');
   ctx.scale(PR, PR);
 
-  const pad = { t: 10, r: 12, b: 20, l: 12 };
-  const gw = W - pad.l - pad.r;
-  const gh = H - pad.t - pad.b;
+  const PAD = {t: 8, r: 14, b: 38, l: 52}; // bottom for x-axis, left for y-axis
+  const gw = W - PAD.l - PAD.r;
+  const gh = H - PAD.t - PAD.b;
 
   const vals = entries.map(e => e.amount);
   const minV = Math.min(...vals);
   const maxV = Math.max(...vals);
-  const range = maxV - minV || 1;
 
-  chartPoints = entries.map((e, i) => {
-    const x = pad.l + (entries.length === 1 ? gw / 2 : (i / (entries.length - 1)) * gw);
-    const y = pad.t + gh - ((e.amount - minV) / range) * gh;
-    return { x, y, entry: e, idx: i };
+  // Date range → timestamps for proportional x
+  const dates = entries.map(e => new Date(e.date + 'T00:00:00').getTime());
+  const minD = dates[0];
+  const maxD = dates[dates.length-1];
+  const dateRange = maxD - minD || 1;
+
+  function toX(ts) {
+    if (entries.length === 1) return PAD.l + gw / 2;
+    return PAD.l + ((ts - minD) / dateRange) * gw;
+  }
+  function toY(val) {
+    const range = maxV - minV || 1;
+    return PAD.t + gh - ((val - minV) / range) * gh;
+  }
+
+  chartPts = entries.map((e, i) => ({
+    x: toX(dates[i]), y: toY(e.amount), entry: e, idx: i
+  }));
+
+  // ── Y-axis grid & labels ──
+  ctx.font = `500 10px Manrope, -apple-system, sans-serif`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+
+  const yTicks = 4;
+  for (let i = 0; i <= yTicks; i++) {
+    const val = minV + (maxV - minV) * (i / yTicks);
+    const y = toY(val);
+    // Grid line
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(PAD.l, y);
+    ctx.lineTo(PAD.l + gw, y);
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = '#9A9A9A';
+    ctx.fillText(fmtShort(val), PAD.l - 5, y);
+  }
+
+  // ── X-axis labels (date-proportional ticks) ──
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  // Choose smart tick positions based on actual dates
+  const maxXTicks = Math.min(entries.length, 5);
+  let tickIndices = [];
+  if (entries.length <= maxXTicks) {
+    tickIndices = entries.map((_,i) => i);
+  } else {
+    // always include first and last, spread rest proportionally
+    tickIndices = [0];
+    const step = (entries.length - 1) / (maxXTicks - 1);
+    for (let i = 1; i < maxXTicks - 1; i++) tickIndices.push(Math.round(i * step));
+    tickIndices.push(entries.length - 1);
+  }
+
+  tickIndices.forEach(i => {
+    const p = chartPts[i];
+    const d = new Date(entries[i].date + 'T00:00:00');
+    const label = d.toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
+    // Tick mark
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(p.x, PAD.t + gh);
+    ctx.lineTo(p.x, PAD.t + gh + 4);
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = '#9A9A9A';
+    ctx.fillText(label, p.x, PAD.t + gh + 7);
   });
 
-  // Fill gradient
-  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + gh);
-  grad.addColorStop(0, 'rgba(232,0,28,0.15)');
-  grad.addColorStop(1, 'rgba(232,0,28,0.00)');
-
+  // ── Gradient fill ──
+  const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + gh);
+  grad.addColorStop(0, 'rgba(232,0,28,0.13)');
+  grad.addColorStop(1, 'rgba(232,0,28,0)');
   ctx.beginPath();
-  ctx.moveTo(chartPoints[0].x, pad.t + gh);
-  chartPoints.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(chartPoints[chartPoints.length-1].x, pad.t + gh);
+  ctx.moveTo(chartPts[0].x, PAD.t + gh);
+  chartPts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(chartPts[chartPts.length-1].x, PAD.t + gh);
   ctx.closePath();
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Line
+  // ── Line ──
   ctx.beginPath();
-  chartPoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  chartPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
   ctx.strokeStyle = '#E8001C';
   ctx.lineWidth = 2;
   ctx.lineJoin = 'round';
   ctx.stroke();
 
-  // X-axis labels
-  const maxLabels = Math.min(entries.length, 5);
-  const step = Math.max(1, Math.floor((entries.length - 1) / (maxLabels - 1)));
-  let labelHTML = '';
-  for (let i = 0; i < entries.length; i += step) {
-    const d = new Date(entries[i].date + 'T00:00:00');
-    const label = d.toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
-    labelHTML += `<span>${label}</span>`;
-  }
-  xLabels.innerHTML = labelHTML;
-
-  // Init tooltip to last point
+  // ── Init to last ──
   if (activeIdx < 0 || activeIdx >= entries.length) activeIdx = entries.length - 1;
   updateTooltip(activeIdx);
 }
 
 function updateTooltip(idx) {
-  if (!chartPoints.length || idx < 0) return;
+  if (!chartPts.length || idx < 0) return;
   activeIdx = idx;
-  const p = chartPoints[idx];
+  const p = chartPts[idx];
   const e = p.entry;
-  const d = new Date(e.date + 'T00:00:00');
-  const ds = d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
-  document.getElementById('tooltip-date').textContent = ds;
-  document.getElementById('tooltip-value').textContent = Math.round(e.amount).toLocaleString('ru-RU') + ' ₽';
-
-  const deltaEl = document.getElementById('tooltip-delta');
+  document.getElementById('ct-date').textContent = fmtDate(e.date);
+  document.getElementById('ct-val').textContent = Math.round(e.amount).toLocaleString('ru-RU') + ' ₽';
+  const deltaEl = document.getElementById('ct-delta');
   if (idx > 0) {
-    const prev = entries[idx - 1].amount;
-    const delta = e.amount - prev;
-    const sign = delta >= 0 ? '+' : '';
-    deltaEl.textContent = sign + Math.round(delta).toLocaleString('ru-RU') + ' ₽ к предыдущей записи';
+    const delta = e.amount - entries[idx-1].amount;
+    deltaEl.textContent = (delta>=0?'+':'') + Math.round(delta).toLocaleString('ru-RU') + ' ₽ к предыдущей';
     deltaEl.style.color = delta >= 0 ? '#1AAF5D' : '#E8001C';
   } else {
     deltaEl.textContent = '';
   }
-
-  const line = document.getElementById('slider-line');
-  const dot = document.getElementById('chart-dot');
+  const line = document.getElementById('s-line');
+  const dot = document.getElementById('s-dot');
   line.style.display = 'block';
   line.style.left = p.x + 'px';
   dot.style.display = 'block';
@@ -631,48 +869,54 @@ function getClosestIdx(clientX) {
   const wrap = document.getElementById('chart-wrap');
   const rect = wrap.getBoundingClientRect();
   const x = clientX - rect.left;
-  if (!chartPoints.length) return -1;
-  let best = 0, bestDist = Infinity;
-  chartPoints.forEach((p, i) => {
+  if (!chartPts.length) return -1;
+  let best = 0, bestD = Infinity;
+  chartPts.forEach((p, i) => {
     const d = Math.abs(p.x - x);
-    if (d < bestDist) { bestDist = d; best = i; }
+    if (d < bestD) { bestD = d; best = i; }
   });
   return best;
 }
 
-// Touch/mouse events for slider
-const wrap = document.getElementById('chart-wrap');
 function handleMove(clientX) {
-  if (!chartPoints.length) return;
+  if (!chartPts.length) return;
   const idx = getClosestIdx(clientX);
   if (idx >= 0) updateTooltip(idx);
 }
-wrap.addEventListener('mousemove', e => handleMove(e.clientX));
-wrap.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive: false});
-wrap.addEventListener('touchstart', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive: false});
-wrap.addEventListener('click', e => handleMove(e.clientX));
 
-// ─── PWA Install ───
+const cw = document.getElementById('chart-wrap');
+cw.addEventListener('mousemove', e => handleMove(e.clientX));
+cw.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
+cw.addEventListener('touchstart', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
+cw.addEventListener('click', e => handleMove(e.clientX));
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderTracker();
+updateGoalSummary();
+window.addEventListener('resize', () => {
+  if (document.getElementById('page-tracker').classList.contains('active')) renderChart();
+});
+
+// PWA Install
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('install-banner').style.display = 'flex';
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('ibanner').style.display = 'flex';
 });
-document.getElementById('install-btn').addEventListener('click', async () => {
+document.getElementById('ibtn').addEventListener('click', async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
+  await deferredPrompt.userChoice;
   deferredPrompt = null;
-  document.getElementById('install-banner').style.display = 'none';
+  document.getElementById('ibanner').style.display = 'none';
 });
-document.getElementById('close-banner').addEventListener('click', () => {
-  document.getElementById('install-banner').style.display = 'none';
+document.getElementById('iclose').addEventListener('click', () => {
+  document.getElementById('ibanner').style.display = 'none';
 });
 
-// ─── INIT ───
-renderTracker();
-window.addEventListener('resize', () => { if (document.getElementById('page-tracker').classList.contains('active')) renderChart(); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>
