@@ -12,352 +12,382 @@
 <title>Накопления</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --red: #E8001C; --red-l: #FFF0F2; --red-m: #FFD6DA; --red-d: #B5001A;
-  --text: #0D0D0D; --t2: #5A5A5A; --t3: #9A9A9A;
-  --bg: #fff; --bg2: #F7F7F7; --bg3: #EFEFEF;
-  --bdr: rgba(0,0,0,0.08); --r: 14px; --rs: 10px;
-  --nav: 64px; --sb: env(safe-area-inset-bottom,0px);
+:root{
+  --red:#E8001C;--red-l:rgba(232,0,28,0.08);--red-m:#FFD6DA;--red-d:#B5001A;
+  --txt:#0D0D0D;--txt2:#5A5A5A;--txt3:#9A9A9A;
+  --bg:#FFFFFF;--bg2:#F7F7F7;--bg3:#EFEFEF;
+  --brd:rgba(0,0,0,0.08);--r:16px;--rs:10px;
+  --nav:68px;--sb:env(safe-area-inset-bottom,0px);
+  --max:900px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Manrope',-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-#app{display:flex;flex-direction:column;height:100%}
-
-/* Header */
-#hdr{background:var(--bg);border-bottom:1px solid var(--bdr);padding:14px 18px 12px;flex-shrink:0;display:flex;align-items:center;gap:10px}
-.logo{width:30px;height:30px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo svg{width:16px;height:16px;fill:white}
-.hdr-text .t1{font-size:16px;font-weight:700;letter-spacing:-.3px}
-.hdr-text .t2{font-size:10px;color:var(--t3);font-weight:500}
-
-/* Content */
-#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav) + var(--sb) + 4px)}
-.page{display:none;padding:18px}
+body{font-family:'Manrope',-apple-system,sans-serif;background:#F0F0F0;color:var(--txt);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100%;max-width:var(--max);margin:0 auto;background:var(--bg);box-shadow:0 0 40px rgba(0,0,0,0.08)}
+#hdr{background:var(--bg);border-bottom:1px solid var(--brd);padding:16px 24px 14px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.logo{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav) + var(--sb) + 8px)}
+.page{display:none;padding:24px}
 .page.active{display:block}
-
-/* Nav */
-#nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav) + var(--sb));padding-bottom:var(--sb);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);display:flex;z-index:100}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--t3);font-family:inherit;transition:color .15s}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--max);height:calc(var(--nav) + var(--sb));padding-bottom:var(--sb);background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--brd);display:flex;z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--txt3);font-family:inherit;transition:color .15s}
 .nb.on{color:var(--red)}
 .nb svg{width:22px;height:22px;fill:currentColor}
-.nb span{font-size:10.5px;font-weight:600}
+.nb span{font-size:11px;font-weight:600}
+.stitle{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--txt3);text-transform:uppercase;margin-bottom:14px}
 
-/* Section label */
-.slbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
+/* ── FORM BLOCKS (tile layout) ── */
+.fb{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.fb-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:0}
+.fb-head.open{margin-bottom:16px}
+.fbt{font-size:14px;font-weight:700;color:var(--txt)}
+.fb-arrow{transition:transform .2s;color:var(--txt3);font-size:14px}
+.fb-arrow.open{transform:rotate(180deg)}
+.fb-body{display:none}
+.fb-body.open{display:block}
 
-/* Card */
-.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px}
-.card+.card{margin-top:10px}
-.card.red-c{background:var(--red-l);border-color:var(--red-m)}
+/* Tile grid for fields */
+.tile-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.tile-grid .fi{flex:1 1 200px;min-width:160px}
+.tile-grid.narrow .fi{flex:1 1 140px;min-width:120px}
 
-/* Field inside card */
-.f-label{font-size:10.5px;color:var(--t3);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-.f-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-input[type=number],input[type=text]{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color .15s;min-width:0}
-input[type=number]:focus,input[type=text]:focus{border-color:var(--red)}
-input[type=date]{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color .15s}
-input[type=date]:focus{border-color:var(--red)}
-.inp-unit{font-size:13px;color:var(--t3);font-weight:600;white-space:nowrap}
-.inp-wide{width:100%}
-.inp-med{width:130px}
-.inp-sm{width:80px}
+.fi{display:flex;flex-direction:column;gap:5px}
+.fi label{font-size:11px;font-weight:600;color:var(--txt2)}
+.fi .hint{font-size:10.5px;color:var(--txt3);font-weight:400;line-height:1.4;margin-top:2px}
+.fi input,.fi select{padding:11px 12px;border:1.5px solid var(--brd);border-radius:var(--rs);font-family:inherit;font-size:14px;background:var(--bg);color:var(--txt);outline:none;-webkit-appearance:none;transition:border-color .15s;font-weight:500;width:100%}
+.fi input:focus,.fi select:focus{border-color:var(--red)}
+.fi select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239A9A9A' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
 
-/* Toggle switch */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
-.toggle-row .tl{font-size:13px;font-weight:500;color:var(--t2)}
-.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:24px;transition:.2s}
-.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-input:checked+.slider{background:var(--red)}
-input:checked+.slider:before{transform:translateX(18px)}
+/* cushion row */
+.cushion-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.cushion-row .fi{flex:1 1 160px}
+.cushion-toggle{display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-start;justify-content:flex-end;padding-bottom:12px}
+.cushion-toggle label.tgl-lbl{font-size:11px;font-weight:600;color:var(--txt2)}
+.tgl-row{display:flex;align-items:center;gap:8px}
+.tgl-row span{font-size:13px;font-weight:500;color:var(--txt2)}
 
-/* Select */
-select{padding:9px 11px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A9A9A'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;width:100%}
+/* toggle */
+.tgl{position:relative;width:44px;height:26px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0;position:absolute}
+.tgl-track{position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:background .2s;cursor:pointer}
+.tgl input:checked+.tgl-track{background:var(--red)}
+.tgl-track::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.tgl input:checked+.tgl-track::after{transform:translateX(18px)}
 
-/* Radio pill group */
-.pill-group{display:flex;background:var(--bg3);border-radius:var(--rs);padding:3px;gap:2px}
-.pill-opt{flex:1;text-align:center;padding:7px 4px;font-size:12px;font-weight:600;color:var(--t2);border-radius:7px;cursor:pointer;transition:all .15s;user-select:none}
-.pill-opt.on{background:var(--bg);color:var(--red);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+/* yield flex grid: 4 rows per column */
+.yr-grid{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+.yr-col{display:flex;flex-direction:column;gap:8px}
+.yr{display:flex;align-items:center;gap:8px}
+.yr-lbl{font-size:12px;font-weight:600;color:var(--txt2);white-space:nowrap;min-width:44px}
+.yr input{width:90px;padding:9px 10px;border:1.5px solid var(--brd);border-radius:var(--rs);font-family:inherit;font-size:14px;background:var(--bg);color:var(--txt);outline:none;-webkit-appearance:none;font-weight:500}
+.yr input:focus{border-color:var(--red)}
+.yr .del-yr{background:none;border:none;color:var(--txt3);font-size:16px;cursor:pointer;padding:4px;line-height:1;flex-shrink:0}
+.yr .del-yr:active{color:var(--red)}
+.btn-yr{background:none;border:1.5px solid var(--brd);border-radius:var(--rs);padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer;margin-top:4px}
+.btn-yr:active{background:var(--bg3)}
 
-/* Accordion */
-.acc-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0}
-.acc-head .ah-title{font-size:14px;font-weight:700}
-.acc-head .ah-val{font-size:13px;color:var(--t2);font-weight:500}
-.acc-arrow{width:18px;height:18px;fill:var(--t3);transition:transform .2s;flex-shrink:0}
-.acc-body{overflow:hidden;transition:max-height .25s ease;max-height:0}
-.acc-body.open{max-height:600px}
-.acc-div{height:1px;background:var(--bdr);margin:12px 0}
+.btn-calc{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .15s,transform .1s;letter-spacing:-.2px}
+.btn-calc:active{background:var(--red-d);transform:scale(.98)}
 
-/* Rate rows */
-.rate-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.rate-row .rlbl{font-size:13px;color:var(--t2);font-weight:500;min-width:50px}
-.btn-small{padding:7px 12px;border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:700;border:1.5px solid var(--bdr);background:var(--bg);color:var(--t2);cursor:pointer;transition:all .15s}
-.btn-small:active{background:var(--bg3)}
-.btn-icon{padding:7px 10px;background:var(--bg3);border:none;border-radius:var(--rs);font-size:16px;cursor:pointer;color:var(--t2);font-weight:700}
-.btn-red-outline{padding:8px 14px;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all .15s}
-.btn-red-outline:active{background:var(--red-l)}
+/* tax help */
+.col-help{display:inline-flex;align-items:center;gap:4px;position:relative}
+.help-btn{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:13px;padding:0 2px;line-height:1;flex-shrink:0}
+.help-popup{display:none;position:absolute;top:100%;left:0;background:var(--bg);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;font-size:11.5px;color:var(--txt2);width:260px;z-index:50;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.help-popup.open{display:block}
 
-/* Save button */
-.btn-save{width:100%;margin-top:14px;padding:13px;background:var(--red);color:white;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
-.btn-save:active{opacity:.8}
-.btn-add{width:100%;margin-top:12px;padding:13px;background:var(--red);color:white;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
-.btn-add:active{opacity:.8}
-
-/* Forecast section label */
-.deposit-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.dep-val{font-size:22px;font-weight:700;color:var(--red);letter-spacing:-.5px}
-.dep-sub{font-size:12px;color:var(--t3);font-weight:500}
-
-/* Table */
-.tscroll{overflow-x:auto;margin:0 -18px;padding:0 18px}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
-thead th{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;padding:0 6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--bdr)}
+/* table */
+.tscroll{overflow-x:auto;margin:0 -24px;padding:0 24px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px}
+thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd)}
 thead th:first-child{text-align:left}
-tbody td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--bdr);white-space:nowrap;font-size:12px;color:var(--text)}
+tbody td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--brd);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--txt)}
 tbody td:first-child{text-align:left;font-weight:700}
-.ms-row td{color:var(--red)!important;background:var(--red-l)}
-.ms-row td:first-child{border-left:3px solid var(--red);padding-left:3px}
+.ms td{color:var(--red)!important;background:rgba(232,0,28,0.07)}
+.ms td:first-child{border-left:3px solid var(--red);padding-left:5px}
 
-/* Tracker summary */
-.sum-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
-.sc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 10px;text-align:center}
+/* tracker */
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.sc{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rs);padding:14px 12px;text-align:center}
+.sc .sl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sc .sv{font-size:15px;font-weight:700;letter-spacing:-.4px}
 .sc.hi{background:var(--red);border-color:var(--red)}
-.sc .sl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .sc.hi .sl{color:rgba(255,255,255,.7)}
-.sc .sv{font-size:14px;font-weight:700;letter-spacing:-.3px}
 .sc.hi .sv{color:#fff}
-.dpos{color:#1AAF5D}.dneg{color:var(--red)}
+.dp{color:#1AAF5D}.dn{color:var(--red)}
 
-/* Chart */
-.chart-box{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
-.chart-tip{padding:14px 14px 6px;min-height:70px}
-.ct-date{font-size:12px;color:var(--t3);font-weight:500;margin-bottom:3px}
-.ct-val{font-size:25px;font-weight:700;letter-spacing:-.7px}
-.ct-delta{font-size:12px;font-weight:600;margin-top:2px}
-.chart-wrap{position:relative;width:100%;height:180px;cursor:crosshair;user-select:none}
-canvas#chart{display:block;width:100%;height:100%}
-.s-line{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);pointer-events:none;display:none}
-.s-dot{position:absolute;width:10px;height:10px;background:var(--red);border:2.5px solid #fff;border-radius:50%;pointer-events:none;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(232,0,28,.18)}
-.chart-empty{height:180px;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;font-weight:500}
+/* chart */
+.cbox{background:var(--bg);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.ctbar{padding:16px 16px 6px;height:80px;display:flex;flex-direction:column;justify-content:center}
+.ct-d{font-size:12px;color:var(--txt3);font-weight:500;margin-bottom:4px}
+.ct-v{font-size:26px;font-weight:700;letter-spacing:-.8px;color:var(--txt)}
+.ct-dl{font-size:12px;font-weight:600;margin-top:2px;min-height:16px}
+.cwrap{position:relative;width:100%;height:220px;cursor:crosshair;user-select:none}
+canvas#chart{display:block;position:absolute;top:0;left:0}
+.sline{position:absolute;top:0;width:1px;background:var(--red);opacity:0.6;pointer-events:none;display:none}
+.sdot{position:absolute;width:10px;height:10px;background:#fff;border:2.5px solid rgba(180,0,0,0.6);border-radius:50%;pointer-events:none;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(232,0,28,.15)}
+.echrt{height:220px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:13px;font-weight:500;flex-direction:column;gap:8px}
 
-/* Add form */
-.add-form{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:20px}
-.form-title{font-size:13px;font-weight:700;margin-bottom:12px}
-.form-fields{display:flex;gap:10px}
-.ff{flex:1;display:flex;flex-direction:column;gap:5px}
-.ff label{font-size:10.5px;font-weight:600;color:var(--t2)}
-.err{font-size:12px;color:var(--red);margin-top:6px;font-weight:500;display:none}
+/* add form */
+.aform{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:20px;margin-bottom:24px}
+.errmsg{font-size:12px;color:var(--red);margin-top:8px;font-weight:500;display:none}
+.btn-add{padding:12px 24px;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;margin-top:12px}
+.btn-add:active{background:var(--red-d);transform:scale(.98)}
 
-/* Entry list */
-.entry-item{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--bdr);gap:10px}
-.e-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
-.e-info{flex:1}
-.e-date{font-size:11.5px;color:var(--t3);font-weight:500}
-.e-amt{font-size:14px;font-weight:700;letter-spacing:-.3px}
-.e-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:18px;padding:4px 8px;border-radius:6px}
-.e-del:active{color:var(--red)}
+.eitem{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--brd);gap:12px}
+.edot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+.einfo{flex:1}
+.edate{font-size:12px;color:var(--txt3);font-weight:500}
+.eamt{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.edel{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:18px;padding:4px 8px;border-radius:6px}
+.edel:active{color:var(--red)}
 
-/* Scrollbar */
+/* save/load */
+.savebar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.btn-sm{padding:9px 16px;border:1.5px solid var(--brd);border-radius:var(--rs);background:var(--bg);font-family:inherit;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer}
+.btn-sm:active{background:var(--bg3)}
+.btn-sm.danger{border-color:var(--red);color:var(--red)}
+
 #content::-webkit-scrollbar{width:3px}
 #content::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
-
-/* Install banner */
-#ibanner{display:none;position:fixed;top:0;left:0;right:0;background:var(--red);color:white;padding:11px 14px;font-size:13px;font-weight:600;z-index:200;justify-content:space-between;align-items:center;gap:8px}
-#ibanner .ib-btn{background:white;color:var(--red);border:none;padding:5px 12px;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
-#ibanner .ib-close{background:none;color:rgba(255,255,255,.7);border:none;font-size:20px;cursor:pointer;padding:2px}
-
-.mb12{margin-bottom:12px}
-.mb20{margin-bottom:20px}
-.mt8{margin-top:8px}
-.mt10{margin-top:10px}
-.gap8{gap:8px}
 </style>
 </head>
 <body>
-
-<div id="ibanner">
-  <span>Установите приложение на экран</span>
-  <button class="ib-btn" id="ibtn">Установить</button>
-  <button class="ib-close" id="iclose">✕</button>
-</div>
-
 <div id="app">
   <div id="hdr">
     <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
     </div>
-    <div class="hdr-text">
-      <div class="t1">Накопления</div>
-      <div class="t2">Прогноз и трекер</div>
+    <div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:-.3px">Накопления</div>
+      <div style="font-size:11px;color:var(--txt3);font-weight:500">Прогноз и трекер</div>
     </div>
   </div>
 
   <div id="content">
-
-    <!-- ═══ PAGE: FORECAST ═══ -->
+    <!-- ══════════ ПРОГНОЗ ══════════ -->
     <div class="page active" id="page-forecast">
 
-      <!-- Стартовый депозит -->
-      <div class="slbl">Стартовый депозит</div>
-      <div class="card red-c mb12">
-        <div class="f-label">Источник</div>
-        <div class="pill-group mb12" id="dep-source-pills">
-          <div class="pill-opt on" data-v="manual" onclick="setDepSource('manual')">Вручную</div>
-          <div class="pill-opt" data-v="tracker" onclick="setDepSource('tracker')">Из накоплений</div>
-        </div>
-        <div id="dep-manual-block">
-          <div class="f-row">
-            <input type="number" class="inp-med" id="inp-deposit" value="1000000" min="0" step="1000">
-            <span class="inp-unit">₽</span>
+      <!-- Инфляция -->
+      <div class="fb" style="margin-bottom:14px">
+        <div class="tile-grid">
+          <div class="fi">
+            <label>Учёт прогнозной инфляции (%)</label>
+            <input type="text" id="p-infl" value="7" inputmode="decimal" oninput="fmtThis(this)">
+            <span class="hint">Вычитается из доходности и роста цен на жильё для расчёта реальных ставок</span>
           </div>
-        </div>
-        <div id="dep-tracker-block" style="display:none">
-          <div style="font-size:13px;color:var(--t2);font-weight:500" id="dep-tracker-val">—</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:3px" id="dep-tracker-date"></div>
         </div>
       </div>
 
-      <!-- Подушка безопасности -->
-      <div class="card mb12">
-        <div class="f-label">Подушка безопасности</div>
-        <div class="f-row mb12">
-          <input type="number" class="inp-med" id="inp-cushion" value="100000" min="0" step="1000">
-          <span class="inp-unit">₽</span>
+      <!-- Базовые параметры (collapsible) -->
+      <div class="fb" id="fb-base">
+        <div class="fb-head open" onclick="toggleFB('base')">
+          <span class="fbt">Стартовый депозит</span>
+          <span class="fb-arrow open" id="arr-base">▾</span>
         </div>
-        <div class="toggle-row">
-          <span class="tl">Не учитывать в накоплениях</span>
-          <label class="switch"><input type="checkbox" id="tog-cushion"><span class="slider"></span></label>
+        <div class="fb-body open" id="body-base">
+          <div class="tile-grid" style="margin-bottom:12px">
+            <div class="fi">
+              <label>Режим</label>
+              <select id="p-dep-mode" onchange="onDepModeChange()">
+                <option value="manual">Ввести вручную</option>
+                <option value="last">Последняя запись из «Накоплений»</option>
+              </select>
+            </div>
+            <div class="fi" id="dep-manual-fi">
+              <label>Сумма (₽)</label>
+              <input type="text" id="p-deposit" value="1 000 000" inputmode="numeric" oninput="fmtThis(this)">
+            </div>
+          </div>
+          <div id="dep-auto-lbl" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--red-l);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--red)"></div>
+          <div class="tile-grid" style="margin-bottom:12px">
+            <div class="fi">
+              <label>Взнос в месяц (₽)</label>
+              <input type="text" id="p-contrib" value="10 000" inputmode="numeric" oninput="fmtThis(this)">
+              <span class="hint">Сумма в текущих ценах (не требует ручной индексации)</span>
+            </div>
+          </div>
+          <div class="cushion-row">
+            <div class="fi">
+              <label>Подушка безопасности (₽)</label>
+              <input type="text" id="p-cushion" value="100 000" inputmode="numeric" oninput="fmtThis(this)">
+            </div>
+            <div class="cushion-toggle">
+              <label class="tgl-lbl">Не учитывать</label>
+              <div class="tgl-row">
+                <label class="tgl"><input type="checkbox" id="p-cushion-on" onchange=""><div class="tgl-track"></div></label>
+                <span>в накоплениях</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Взнос в месяц -->
-      <div class="card mb20">
-        <div class="f-label">Взнос в месяц</div>
-        <div class="f-row">
-          <input type="number" class="inp-med" id="inp-monthly" value="10000" min="0" step="500">
-          <span class="inp-unit">₽</span>
+      <!-- Цель (collapsible) -->
+      <div class="fb" id="fb-goal">
+        <div class="fb-head open" onclick="toggleFB('goal')">
+          <span class="fbt">Выбрать цель</span>
+          <span class="fb-arrow open" id="arr-goal">▾</span>
         </div>
-      </div>
-
-      <!-- Цель -->
-      <div class="slbl">Выбрать цель</div>
-      <div class="card mb12" id="goal-card">
-        <div class="acc-head" onclick="toggleAcc('goal')">
-          <div>
-            <div class="ah-title">Квартира</div>
-            <div class="ah-val" id="goal-summary">10 000 000 ₽ · 50% взнос</div>
+        <div class="fb-body open" id="body-goal">
+          <div class="tile-grid" style="margin-bottom:12px">
+            <div class="fi">
+              <label>Тип цели</label>
+              <select id="p-goal-type"><option value="apartment">Квартира</option></select>
+            </div>
           </div>
-          <svg class="acc-arrow" id="arr-goal" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-        </div>
-        <div class="acc-body" id="body-goal">
-          <div class="acc-div"></div>
-          <div class="f-label">Стоимость жилья</div>
-          <div class="f-row mb12">
-            <input type="number" class="inp-med" id="inp-price" value="10000000" min="0" step="100000">
-            <span class="inp-unit">₽</span>
+          <!-- Price mode -->
+          <div class="tile-grid" style="margin-bottom:12px">
+            <div class="fi">
+              <label>Режим стоимости</label>
+              <select id="p-price-mode" onchange="onPriceModeChange()">
+                <option value="simple">Простой ввод — общая стоимость</option>
+                <option value="sqm">Район и метраж — площадь × цена м²</option>
+              </select>
+            </div>
           </div>
-          <div class="f-label">Рост цен на жильё</div>
-          <div class="f-row mb12">
-            <input type="number" class="inp-sm" id="inp-growth" value="5" min="0" max="30" step="0.5">
-            <span class="inp-unit">% в год</span>
+          <div id="price-simple">
+            <div class="tile-grid" style="margin-bottom:12px">
+              <div class="fi">
+                <label>Стоимость жилья (₽)</label>
+                <input type="text" id="p-price" value="10 000 000" inputmode="numeric" oninput="fmtThis(this);calcSqmPrice()">
+              </div>
+            </div>
           </div>
-          <div class="f-label">Первоначальный взнос</div>
-          <div class="f-row">
-            <input type="number" class="inp-sm" id="inp-down" value="50" min="1" max="100" step="1">
-            <span class="inp-unit">%</span>
+          <div id="price-sqm" style="display:none">
+            <div class="tile-grid" style="margin-bottom:12px">
+              <div class="fi">
+                <label>Площадь (м²)</label>
+                <input type="text" id="p-sqm" value="50" inputmode="decimal" oninput="fmtThis(this);calcSqmPrice()">
+              </div>
+              <div class="fi">
+                <label>Цена м² (₽)</label>
+                <input type="text" id="p-sqm-price" value="200 000" inputmode="numeric" oninput="fmtThis(this);calcSqmPrice()">
+              </div>
+            </div>
+            <div id="sqm-total" style="padding:10px 12px;background:var(--red-l);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--red);margin-bottom:12px"></div>
+          </div>
+          <div class="tile-grid">
+            <div class="fi">
+              <label>Рост цен на жильё (% / год)</label>
+              <input type="text" id="p-growth" value="5" inputmode="decimal" oninput="fmtThis(this)">
+              <span class="hint">Ожидаемый среднегодовой рост типа жилья (новостройки, вторичный рынок, строительство дома и т.п.)</span>
+            </div>
+            <div class="fi">
+              <label>Первоначальный взнос (%)</label>
+              <input type="text" id="p-downpay" value="50" inputmode="decimal" oninput="fmtThis(this)">
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Доходность -->
-      <div class="slbl mb12">Средняя доходность активов</div>
-      <div class="card mb12">
-        <div class="pill-group mb12" id="rate-type-pills">
-          <div class="pill-opt on" data-v="fixed" onclick="setRateType('fixed')">Фиксированная</div>
-          <div class="pill-opt" data-v="flex" onclick="setRateType('flex')">Гибкая</div>
-        </div>
-        <div style="font-size:11px;color:var(--t3);margin-bottom:12px" id="rate-hint">Одинаковый процент доходности на все годы</div>
-
-        <!-- Fixed rate -->
-        <div id="rate-fixed-block">
-          <div class="f-row">
-            <input type="number" class="inp-sm" id="inp-fixed-rate" value="10" min="0" max="50" step="0.5">
-            <span class="inp-unit">% в год</span>
+      <div class="fb">
+        <div class="fbt" style="margin-bottom:14px">Средняя доходность активов</div>
+        <div class="tile-grid" style="margin-bottom:14px">
+          <div class="fi">
+            <label>Тип</label>
+            <select id="p-ytype" onchange="onYieldTypeChange()">
+              <option value="fixed">Фиксированная — одинаковый % на все годы</option>
+              <option value="flex">Гибкая — разные % по годам</option>
+            </select>
           </div>
         </div>
-
-        <!-- Flex rates -->
-        <div id="rate-flex-block" style="display:none">
-          <div id="flex-rates-list"></div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn-red-outline" onclick="addRateYear()">+ год</button>
-            <button class="btn-small" onclick="removeRateYear()">Удалить</button>
+        <div id="yf-fixed">
+          <div class="tile-grid">
+            <div class="fi">
+              <label>Доходность (%)</label>
+              <input type="text" id="p-yfixed" value="10" inputmode="decimal" oninput="fmtThis(this)">
+            </div>
           </div>
+        </div>
+        <div id="yf-flex" style="display:none">
+          <div class="yr-grid" id="yr-grid"></div>
+          <button class="btn-yr" onclick="addYR()">+ год</button>
         </div>
       </div>
 
-      <button class="btn-save" onclick="calcForecast()">Рассчитать прогноз</button>
+      <button class="btn-calc" onclick="calcForecast()">Рассчитать прогноз</button>
 
-      <!-- Forecast table -->
-      <div id="forecast-result" style="display:none;margin-top:24px">
-        <div class="slbl">Прогноз по годам</div>
+      <div id="fc-result" style="display:none;margin-top:28px">
+        <div class="stitle">Прогноз по годам</div>
         <div class="tscroll">
           <table>
             <thead><tr>
-              <th>Год</th><th>Нач. года</th><th>Взносы</th><th>% доход</th><th>Кон. года</th><th>Цена жилья</th><th>Треб. взнос</th><th>Доля</th>
+              <th>Год</th>
+              <th>Нач. года</th>
+              <th>Взносы</th>
+              <th>% доход</th>
+              <th>
+                <div class="col-help">
+                  Налог
+                  <button class="help-btn" onclick="toggleHelp(event)">ⓘ</button>
+                  <div class="help-popup" id="tax-help">
+                    <b>Налог на доход по вкладу</b><br><br>
+                    Ключевая ставка ≈ (инфляция + доходность) / 2<br><br>
+                    Необлагаемый минимум = 1 000 000 ₽ × ключевую ставку<br><br>
+                    Налог = 13% × max(0, доход − минимум)<br><br>
+                    Если налог &lt; 100 ₽ — ставится 0.
+                  </div>
+                </div>
+              </th>
+              <th>Кон. года</th>
+              <th>Цена жилья</th>
+              <th>Доля</th>
             </tr></thead>
-            <tbody id="ftbody"></tbody>
+            <tbody id="fc-tbody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ═══ PAGE: TRACKER ═══ -->
+    <!-- ══════════ НАКОПЛЕНИЯ ══════════ -->
     <div class="page" id="page-tracker">
-      <div class="sum-strip">
+
+      <div class="savebar">
+        <button class="btn-sm" onclick="exportCSV()">⬇ Выгрузить данные</button>
+        <label class="btn-sm" style="cursor:pointer">⬆ Загрузить данные<input type="file" accept=".csv" style="display:none" onchange="importCSV(this)"></label>
+      </div>
+
+      <div class="sc-grid">
         <div class="sc hi"><div class="sl">Последнее</div><div class="sv" id="v-last">—</div></div>
-        <div class="sc"><div class="sl">Прирост</div><div class="sv" id="v-delta">—</div></div>
+        <div class="sc"><div class="sl">Прирост общий</div><div class="sv" id="v-delta">—</div></div>
         <div class="sc"><div class="sl">Записей</div><div class="sv" id="v-cnt">0</div></div>
       </div>
 
-      <div class="slbl">График накоплений</div>
-      <div class="chart-box">
-        <div class="chart-tip">
-          <div class="ct-date" id="ct-date">Нет данных</div>
-          <div class="ct-val" id="ct-val">—</div>
-          <div class="ct-delta" id="ct-delta"></div>
+      <div class="stitle">График накоплений</div>
+      <div class="cbox">
+        <div class="ctbar">
+          <div class="ct-d" id="ct-d">Нет данных</div>
+          <div class="ct-v" id="ct-v">—</div>
+          <div class="ct-dl" id="ct-dl">&nbsp;</div>
         </div>
-        <div class="chart-wrap" id="chart-wrap">
-          <div class="chart-empty" id="chart-empty">Добавьте запись для отображения</div>
-          <canvas id="chart" style="display:none"></canvas>
-          <div class="s-line" id="s-line"></div>
-          <div class="s-dot" id="s-dot"></div>
+        <div class="cwrap" id="cwrap">
+          <div class="echrt" id="echrt">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="var(--bg3)"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+            Добавьте запись для отображения
+          </div>
+          <canvas id="chart"></canvas>
+          <div class="sline" id="sline"></div>
+          <div class="sdot" id="sdot"></div>
         </div>
       </div>
 
-      <div class="add-form">
-        <div class="form-title">Добавить запись</div>
-        <div class="form-fields">
-          <div class="ff">
-            <label>Дата</label>
-            <input type="date" id="inp-date">
-          </div>
-          <div class="ff">
-            <label>Сумма (₽)</label>
-            <input type="number" id="inp-amt" placeholder="0" step="1000" inputmode="numeric">
-          </div>
+      <div class="aform">
+        <div class="fbt" style="margin-bottom:14px">Добавить запись</div>
+        <div class="tile-grid">
+          <div class="fi"><label>Дата</label><input type="date" id="e-date"></div>
+          <div class="fi"><label>Сумма (₽)</label><input type="text" id="e-amt" placeholder="0" inputmode="numeric" oninput="fmtThis(this)"></div>
         </div>
-        <div class="err" id="err">Заполните все поля</div>
+        <div class="errmsg" id="errmsg">Заполните все поля корректно</div>
         <button class="btn-add" onclick="addEntry()">Добавить</button>
       </div>
 
-      <div class="slbl">История</div>
-      <div id="entries-list"></div>
-      <div id="no-entries" style="color:var(--t3);font-size:13px;padding:8px 0">Записей пока нет</div>
+      <div>
+        <div class="stitle">История</div>
+        <div id="elist"></div>
+        <div id="no-ent" style="color:var(--txt3);font-size:13px;font-weight:500;padding:12px 0">Записей пока нет</div>
+      </div>
     </div>
-
   </div>
 
   <nav id="nav">
@@ -371,552 +401,590 @@ canvas#chart{display:block;width:100%;height:100%}
     </button>
   </nav>
 </div>
-
 <script>
-// ══════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════
-let depSource = 'manual';
-let rateType = 'fixed';
-let flexRates = []; // [{year, rate}]
-let entries = JSON.parse(localStorage.getItem('sv_entries') || '[]');
-
-// Init flex rates: current year + 2
-function initFlexRates() {
-  const y = new Date().getFullYear();
-  flexRates = [
-    {year: y, rate: 10},
-    {year: y+1, rate: 10},
-    {year: y+2, rate: 10}
-  ];
+// ════ UTILS ════
+function rawNum(s){ return parseFloat(String(s).replace(/\s/g,'').replace(',','.')) || 0; }
+function fmtSpaced(n){
+  if(isNaN(n)||n===null) return '';
+  const s=Math.round(n*100)/100;
+  return s.toLocaleString('ru-RU').replace(/,(\d+)$/,(m,p)=>'.'+ p);
 }
-initFlexRates();
+function fmtInt(n){ return isNaN(n)?'':Math.round(n).toLocaleString('ru-RU'); }
 
-// ══════════════════════════════════════════
-// NAV
-// ══════════════════════════════════════════
-function showPage(name) {
-  ['forecast','tracker'].forEach(p => {
-    document.getElementById('page-'+p).classList.toggle('active', p===name);
-    document.getElementById('nb-'+p).classList.toggle('on', p===name);
-  });
-  if (name === 'tracker') { renderTracker(); }
-}
-
-// ══════════════════════════════════════════
-// ACCORDION
-// ══════════════════════════════════════════
-function toggleAcc(id) {
-  const body = document.getElementById('body-'+id);
-  const arr = document.getElementById('arr-'+id);
-  const open = body.classList.toggle('open');
-  arr.style.transform = open ? 'rotate(180deg)' : '';
-}
-
-// ══════════════════════════════════════════
-// DEPOSIT SOURCE
-// ══════════════════════════════════════════
-function setDepSource(v) {
-  depSource = v;
-  document.querySelectorAll('#dep-source-pills .pill-opt').forEach(el => {
-    el.classList.toggle('on', el.dataset.v === v);
-  });
-  document.getElementById('dep-manual-block').style.display = v === 'manual' ? '' : 'none';
-  document.getElementById('dep-tracker-block').style.display = v === 'tracker' ? '' : 'none';
-  if (v === 'tracker') updateTrackerDepDisplay();
-}
-
-function updateTrackerDepDisplay() {
-  const val = document.getElementById('dep-tracker-val');
-  const dt = document.getElementById('dep-tracker-date');
-  if (entries.length === 0) {
-    val.textContent = 'Нет данных в накоплениях';
-    dt.textContent = '';
-  } else {
-    const last = entries[entries.length-1];
-    val.textContent = Math.round(last.amount).toLocaleString('ru-RU') + ' ₽';
-    dt.textContent = 'Последняя запись: ' + fmtDate(last.date);
+function fmtThis(inp){
+  const raw=String(inp.value).replace(/\s/g,'');
+  const n=parseFloat(raw.replace(',','.'));
+  if(!isNaN(n) && raw!=='' && !raw.endsWith('.') && !raw.endsWith(',') && !raw.endsWith('0')){
+    const parts=Math.floor(n).toString().split('');
+    let int='';
+    parts.forEach((c,i)=>{ if(i>0&&(parts.length-i)%3===0) int+=' '; int+=c; });
+    const dec=raw.includes('.')||raw.includes(',') ? raw.replace(',','.').split('.')[1] : '';
+    inp.value=int+(dec!==undefined&&raw.includes('.')?'.'+dec:'');
   }
 }
 
-// ══════════════════════════════════════════
-// RATE TYPE
-// ══════════════════════════════════════════
-function setRateType(v) {
-  rateType = v;
-  document.querySelectorAll('#rate-type-pills .pill-opt').forEach(el => {
-    el.classList.toggle('on', el.dataset.v === v);
+function nv(id){ return rawNum(document.getElementById(id).value); }
+
+function fM(n){
+  if(n===null||n===undefined) return '—';
+  if(Math.abs(n)>=1e6) return fmtInt(Math.round(n/1e4)*1e4/1e6).replace(',',',')+' млн ₽';
+  return fmtInt(n)+' ₽';
+}
+function fShort(n){
+  if(Math.abs(n)>=1e6) return (n/1e6).toFixed(1).replace('.',',')+' млн';
+  if(Math.abs(n)>=1e3) return fmtInt(Math.round(n/1e3)*1e3/1e3)+' тыс';
+  return fmtInt(n);
+}
+
+// ════ NAV ════
+function showPage(name){
+  ['forecast','tracker'].forEach(p=>{
+    document.getElementById('page-'+p).classList.toggle('active',p===name);
+    document.getElementById('nb-'+p).classList.toggle('on',p===name);
   });
-  document.getElementById('rate-hint').textContent = v === 'fixed'
-    ? 'Одинаковый процент доходности на все годы'
-    : 'Различные проценты в зависимости от года';
-  document.getElementById('rate-fixed-block').style.display = v === 'fixed' ? '' : 'none';
-  document.getElementById('rate-flex-block').style.display = v === 'flex' ? '' : 'none';
-  if (v === 'flex') renderFlexRates();
+  if(name==='tracker') renderChart();
 }
 
-function renderFlexRates() {
-  const list = document.getElementById('flex-rates-list');
-  list.innerHTML = '';
-  flexRates.forEach((r, i) => {
-    const row = document.createElement('div');
-    row.className = 'rate-row';
-    row.innerHTML = `<span class="rlbl">${r.year}</span>
-      <input type="number" style="width:70px;padding:7px 9px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:inherit;font-size:14px;font-weight:600;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none" 
-        value="${r.rate}" min="0" max="50" step="0.5"
-        onchange="flexRates[${i}].rate=parseFloat(this.value)||0">
-      <span class="inp-unit">%</span>`;
-    list.appendChild(row);
-  });
+// ════ COLLAPSIBLE FB ════
+function toggleFB(id){
+  const head=document.querySelector('#fb-'+id+' .fb-head');
+  const body=document.getElementById('body-'+id);
+  const arr=document.getElementById('arr-'+id);
+  const open=body.classList.toggle('open');
+  head.classList.toggle('open',open);
+  arr.classList.toggle('open',open);
 }
 
-function addRateYear() {
-  const lastYear = flexRates.length ? flexRates[flexRates.length-1].year : new Date().getFullYear();
-  const lastRate = flexRates.length ? flexRates[flexRates.length-1].rate : 10;
-  flexRates.push({year: lastYear+1, rate: lastRate});
-  renderFlexRates();
+// ════ DEPOSIT MODE ════
+function onDepModeChange(){
+  const v=document.getElementById('p-dep-mode').value;
+  document.getElementById('dep-manual-fi').style.display=v==='manual'?'':'none';
+  const al=document.getElementById('dep-auto-lbl');
+  if(v==='last'){
+    al.style.display='';
+    if(entries.length){
+      const last=entries[entries.length-1];
+      const d=new Date(last.date+'T00:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+      al.textContent=fmtInt(last.amount)+' ₽  ·  '+d;
+    } else al.textContent='Нет записей в «Накоплениях»';
+  } else al.style.display='none';
 }
 
-function removeRateYear() {
-  if (flexRates.length > 1) { flexRates.pop(); renderFlexRates(); }
+// ════ PRICE MODE ════
+function onPriceModeChange(){
+  const v=document.getElementById('p-price-mode').value;
+  document.getElementById('price-simple').style.display=v==='simple'?'':'none';
+  document.getElementById('price-sqm').style.display=v==='sqm'?'':'none';
+  calcSqmPrice();
+}
+function calcSqmPrice(){
+  const mode=document.getElementById('p-price-mode').value;
+  if(mode!=='sqm') return;
+  const sqm=nv('p-sqm'), sp=nv('p-sqm-price');
+  const total=sqm*sp;
+  document.getElementById('sqm-total').textContent='Стоимость жилья: '+fmtInt(total)+' ₽';
+}
+function getPrice(){
+  const mode=document.getElementById('p-price-mode').value;
+  if(mode==='sqm') return nv('p-sqm')*nv('p-sqm-price');
+  return nv('p-price');
 }
 
-// ══════════════════════════════════════════
-// GOAL SUMMARY
-// ══════════════════════════════════════════
-function updateGoalSummary() {
-  const price = parseFloat(document.getElementById('inp-price').value) || 0;
-  const down = parseFloat(document.getElementById('inp-down').value) || 0;
-  const p = price >= 1e6 ? (price/1e6).toFixed(1)+' млн' : price.toLocaleString('ru-RU');
-  document.getElementById('goal-summary').textContent = p + ' ₽ · ' + down + '% взнос';
-}
-['inp-price','inp-down','inp-growth'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateGoalSummary);
-});
+// ════ YIELD ROWS ════
+const CY=new Date().getFullYear();
+let yrs=[{yr:CY,pct:10},{yr:CY+1,pct:10},{yr:CY+2,pct:10}];
 
-// ══════════════════════════════════════════
-// FORECAST CALCULATION
-// ══════════════════════════════════════════
-function getRate(year) {
-  if (rateType === 'fixed') {
-    return (parseFloat(document.getElementById('inp-fixed-rate').value) || 10) / 100;
-  }
-  // flex: find rate for year, or use last one
-  const found = flexRates.find(r => r.year === year);
-  if (found) return found.rate / 100;
-  // if year > last defined, use last rate
-  const last = flexRates[flexRates.length-1];
-  return last ? last.rate / 100 : 0.10;
+function onYieldTypeChange(){
+  const v=document.getElementById('p-ytype').value;
+  document.getElementById('yf-fixed').style.display=v==='fixed'?'':'none';
+  document.getElementById('yf-flex').style.display=v==='flex'?'':'none';
+  if(v==='flex') renderYR();
 }
 
-function getDeposit() {
-  if (depSource === 'tracker' && entries.length > 0) {
-    return entries[entries.length-1].amount;
-  }
-  return parseFloat(document.getElementById('inp-deposit').value) || 0;
-}
-
-function getDepositDate() {
-  if (depSource === 'tracker' && entries.length > 0) {
-    return entries[entries.length-1].date;
-  }
-  return null;
-}
-
-function calcForecast() {
-  const deposit = getDeposit();
-  const cushion = parseFloat(document.getElementById('inp-cushion').value) || 0;
-  const excludeCushion = document.getElementById('tog-cushion').checked;
-  const monthly = parseFloat(document.getElementById('inp-monthly').value) || 0;
-  const price = parseFloat(document.getElementById('inp-price').value) || 0;
-  const growth = (parseFloat(document.getElementById('inp-growth').value) || 5) / 100;
-  const downPct = (parseFloat(document.getElementById('inp-down').value) || 50) / 100;
-
-  const depDate = getDepositDate();
-  const now = new Date();
-  const startYear = depDate ? parseInt(depDate.split('-')[0]) : now.getFullYear();
-  const startMonth = depDate ? parseInt(depDate.split('-')[1]) : now.getMonth() + 1;
-
-  let savings = excludeCushion ? Math.max(0, deposit - cushion) : deposit;
-  let housingPrice = price;
-
-  const rows = [];
-  const MAX_YEARS = 60;
-
-  for (let yi = 0; yi < MAX_YEARS; yi++) {
-    const year = startYear + yi;
-    const rate = getRate(year);
-    const startSav = savings;
-
-    let yearlyContrib, yearlyInterest;
-
-    if (yi === 0 && depDate) {
-      // Partial first year
-      const monthsLeft = 12 - startMonth + 1;
-      yearlyContrib = monthly * monthsLeft;
-      // Interest on starting balance for remaining months + contributions
-      yearlyInterest = startSav * rate * (monthsLeft / 12) + yearlyContrib * rate * (monthsLeft / 24);
-    } else {
-      yearlyContrib = monthly * 12;
-      yearlyInterest = (startSav + yearlyContrib / 2) * rate;
+function renderYR(){
+  const grid=document.getElementById('yr-grid');
+  grid.innerHTML='';
+  // Group into columns of 4
+  const colCount=Math.ceil(yrs.length/4);
+  for(let c=0;c<colCount;c++){
+    const col=document.createElement('div');
+    col.className='yr-col';
+    for(let r=0;r<4;r++){
+      const i=c*4+r;
+      if(i>=yrs.length) break;
+      const row=document.createElement('div');
+      row.className='yr';
+      row.innerHTML='<span class="yr-lbl">'+yrs[i].yr+'</span>'+
+        '<input type="text" value="'+yrs[i].pct+'" inputmode="decimal" onchange="yrs['+i+'].pct=rawNum(this.value)">'+
+        '<button class="del-yr" onclick="removeYR('+i+')" title="Удалить">✕</button>';
+      col.appendChild(row);
     }
-
-    // Tax: 13% on interest above 150k (simplified)
-    const taxFree = 150000;
-    const tax = yearlyInterest > taxFree ? (yearlyInterest - taxFree) * 0.13 : 0;
-    savings = startSav + yearlyContrib + yearlyInterest - tax;
-
-    const required = housingPrice * downPct;
-    const share = savings / required;
-
-    rows.push({
-      year, startSav: yi === 0 ? null : startSav,
-      contrib: yi === 0 ? yearlyContrib : yearlyContrib,
-      interest: yearlyInterest, tax, end: savings,
-      housing: housingPrice, required, share
-    });
-
-    housingPrice *= (1 + growth);
-
-    // Stop 2 years after hitting 100%
-    if (share >= 1.0 && rows.filter(r => r.share >= 1.0).length >= 3) break;
+    grid.appendChild(col);
   }
-
-  renderForecastTable(rows);
-  document.getElementById('forecast-result').style.display = '';
-
-  // Scroll to table
-  setTimeout(() => {
-    document.getElementById('forecast-result').scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
 }
 
-function fmtM(n) {
-  if (n === null || n === undefined) return '—';
-  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1).replace('.',',') + ' млн';
-  if (Math.abs(n) >= 1e3) return Math.round(n/1e3) + ' тыс';
-  return Math.round(n).toLocaleString('ru-RU');
+function addYR(){
+  const last=yrs.length?yrs[yrs.length-1].yr:CY-1;
+  yrs.push({yr:last+1,pct:10});
+  renderYR();
+}
+function removeYR(i){ if(yrs.length<=1) return; yrs.splice(i,1); renderYR(); }
+
+// ════ TAX HELP ════
+function toggleHelp(e){
+  e.stopPropagation();
+  document.getElementById('tax-help').classList.toggle('open');
+}
+document.addEventListener('click',()=>document.getElementById('tax-help').classList.remove('open'));
+
+// ════ FORECAST CALC ════
+function getRate(yr,type,fixed,flexRates,infl){
+  let pct;
+  if(type==='fixed') pct=fixed;
+  else{
+    const sorted=[...flexRates].sort((a,b)=>a.yr-b.yr);
+    const m=sorted.find(r=>r.yr===yr);
+    if(m) pct=m.pct;
+    else if(!sorted.length) pct=10;
+    else if(yr<sorted[0].yr) pct=sorted[0].pct;
+    else pct=sorted[sorted.length-1].pct;
+  }
+  return Math.max(0,(pct-infl))/100;
 }
 
-function renderForecastTable(rows) {
-  const tb = document.getElementById('ftbody');
-  tb.innerHTML = '';
-  rows.forEach(r => {
-    const ms = r.share >= 0.98 && r.share < 1.04;
-    const goalMet = r.share >= 1.0;
-    const tr = document.createElement('tr');
-    if (ms) tr.className = 'ms-row';
-    tr.innerHTML = `
-      <td>${r.year}</td>
-      <td>${r.startSav === null ? '—' : fmtM(r.startSav)}</td>
-      <td>${fmtM(r.contrib)}</td>
-      <td>${fmtM(r.interest)}</td>
-      <td>${fmtM(r.end)}</td>
-      <td>${fmtM(r.housing)}</td>
-      <td>${fmtM(r.required)}</td>
-      <td style="font-weight:700;color:${goalMet?'var(--red)':'inherit'}">${(r.share*100).toFixed(1)}%</td>
-    `;
-    tb.appendChild(tr);
+function calcTax(interest,rate,infl){
+  const keyRate=(infl+rate*100)/2/100;
+  const exempt=1000000*keyRate;
+  const taxable=Math.max(0,interest-exempt);
+  const tax=taxable*0.13;
+  return tax<100?0:tax;
+}
+
+function syncYieldFromDOM(){
+  document.querySelectorAll('#yr-grid input[type=text]').forEach((inp,i)=>{
+    if(yrs[i]) yrs[i].pct=rawNum(inp.value);
   });
 }
 
-// ══════════════════════════════════════════
-// TRACKER
-// ══════════════════════════════════════════
-function save() { localStorage.setItem('sv_entries', JSON.stringify(entries)); }
+function calcForecast(){
+  const depMode=document.getElementById('p-dep-mode').value;
+  let deposit,startDate;
+  if(depMode==='last'&&entries.length){
+    const last=entries[entries.length-1];
+    deposit=last.amount;
+    startDate=new Date(last.date+'T00:00:00');
+  } else {
+    deposit=nv('p-deposit');
+    startDate=new Date(CY,0,1);
+  }
 
-document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+  const contrib=nv('p-contrib');
+  const cushionOn=document.getElementById('p-cushion-on').checked;
+  const cushion=cushionOn?0:nv('p-cushion'); // "не учитывать" = exclude from investable
+  const price0=getPrice();
+  const priceGrowthNom=nv('p-growth');
+  const downpay=nv('p-downpay')/100;
+  const ytype=document.getElementById('p-ytype').value;
+  const yfixed=nv('p-yfixed');
+  const infl=nv('p-infl');
+  const priceGrowthReal=Math.max(0,priceGrowthNom-infl)/100;
 
-function addEntry() {
-  const d = document.getElementById('inp-date').value;
-  const a = parseFloat(document.getElementById('inp-amt').value);
-  const err = document.getElementById('err');
-  if (!d || isNaN(a) || a <= 0) { err.style.display = ''; return; }
-  err.style.display = 'none';
-  entries.push({date: d, amount: a});
-  entries.sort((a,b) => a.date.localeCompare(b.date));
+  if(ytype==='flex') syncYieldFromDOM();
+
+  const startYr=startDate.getFullYear();
+  const Jan1Next=new Date(startYr+1,0,1);
+  const daysLeft=Math.max(1,(Jan1Next-startDate)/86400000);
+  const fracFirst=Math.min(1,daysLeft/365);
+  const monthsLeft=Math.round(fracFirst*12);
+
+  let balance=Math.max(0,deposit-(cushionOn?0:nv('p-cushion')));
+  // If cushion not excluded, it's part of balance
+  if(cushionOn) balance=deposit; // include cushion in investable
+
+  const rows=[];
+  let goalIdx=-1;
+
+  for(let yr=startYr;yr<=startYr+70;yr++){
+    const rate=getRate(yr,ytype,yfixed,yrs,infl);
+    const isFirst=yr===startYr;
+    const frac=isFirst?fracFirst:1;
+    const months=isFirst?monthsLeft:12;
+    const yrContrib=contrib*months;
+    const interest=(balance*rate + yrContrib*rate/2)*frac;
+    const tax=calcTax(interest,rate,infl);
+    const endBal=balance+yrContrib+interest-tax;
+    const housing=price0*Math.pow(1+priceGrowthReal,yr-startYr+(isFirst?frac:1));
+    const required=housing*downpay;
+    const effectiveBal=endBal+(cushionOn?0:nv('p-cushion'));
+    const share=effectiveBal/required;
+
+    rows.push({yr,startBal:isFirst?null:balance,contrib:isFirst?null:yrContrib,interest:isFirst?null:interest,tax:isFirst?null:tax,endBal,housing,required,share});
+    balance=endBal;
+
+    if(share>=1&&goalIdx<0) goalIdx=rows.length-1;
+    if(goalIdx>=0&&rows.length>=goalIdx+3) break;
+  }
+
+  const tbody=document.getElementById('fc-tbody');
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const isMs=r.share>=1&&goalIdx===rows.indexOf(r);
+    const isOver=r.share>=1;
+    const tr=document.createElement('tr');
+    if(isMs) tr.className='ms';
+    tr.innerHTML='<td>'+r.yr+'</td>'+
+      '<td>'+fM(r.startBal)+'</td>'+
+      '<td>'+fM(r.contrib)+'</td>'+
+      '<td>'+fM(r.interest)+'</td>'+
+      '<td>'+fM(r.tax)+'</td>'+
+      '<td>'+fM(r.endBal)+'</td>'+
+      '<td>'+fM(r.housing)+'</td>'+
+      '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+(r.share*100).toFixed(1)+'%</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('fc-result').style.display='';
+
+  // Collapse base & goal blocks
+  ['base','goal'].forEach(id=>{
+    const body=document.getElementById('body-'+id);
+    const head=document.querySelector('#fb-'+id+' .fb-head');
+    const arr=document.getElementById('arr-'+id);
+    if(body.classList.contains('open')){
+      body.classList.remove('open');
+      head.classList.remove('open');
+      arr.classList.remove('open');
+    }
+  });
+
+  setTimeout(()=>document.getElementById('fc-result').scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+// ════ STORAGE ════
+let entries=JSON.parse(localStorage.getItem('sv_ent')||'[]');
+function save(){ localStorage.setItem('sv_ent',JSON.stringify(entries)); }
+
+// ════ EXPORT / IMPORT ════
+function exportCSV(){
+  if(!entries.length){ alert('Нет данных для выгрузки'); return; }
+  let csv='Дата,Сумма\n';
+  entries.forEach(e=>{ csv+=e.date+','+e.amount+'\n'; });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='накопления_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+function importCSV(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    const imported=[];
+    lines.forEach(l=>{
+      const parts=l.split(',');
+      if(parts.length<2) return;
+      const date=parts[0].trim();
+      const amount=parseFloat(parts[1].replace(/\s/g,''));
+      if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&!isNaN(amount)) imported.push({date,amount});
+    });
+    if(!imported.length){ alert('Не удалось прочитать файл'); return; }
+    entries=[...entries,...imported];
+    // deduplicate by date (keep last)
+    const map={};
+    entries.forEach(e=>map[e.date]=e.amount);
+    entries=Object.keys(map).sort().map(d=>({date:d,amount:map[d]}));
+    save(); renderTracker();
+    alert('Загружено записей: '+imported.length);
+  };
+  reader.readAsText(file,'utf-8');
+  input.value='';
+}
+
+// ════ ADD / DELETE ════
+document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+
+function addEntry(){
+  const d=document.getElementById('e-date').value;
+  const a=rawNum(document.getElementById('e-amt').value);
+  const err=document.getElementById('errmsg');
+  if(!d||isNaN(a)||a<=0){err.style.display='';return;}
+  err.style.display='none';
+  entries.push({date:d,amount:a});
+  entries.sort((a,b)=>a.date.localeCompare(b.date));
   save();
-  document.getElementById('inp-amt').value = '';
-  if (depSource === 'tracker') updateTrackerDepDisplay();
+  document.getElementById('e-amt').value='';
   renderTracker();
 }
+function deleteEntry(i){ entries.splice(i,1); save(); renderTracker(); }
 
-function deleteEntry(i) {
-  entries.splice(i, 1);
-  save();
-  if (depSource === 'tracker') updateTrackerDepDisplay();
-  renderTracker();
-}
-
-function fmtDate(iso) {
-  const [y,m,d] = iso.split('-');
-  const ms = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  return `${+d} ${ms[+m-1]} ${y}`;
-}
-
-function fmtShort(n) {
-  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.',',') + ' млн';
-  if (n >= 1e3) return Math.round(n/1e3) + ' тыс';
-  return Math.round(n).toLocaleString('ru-RU');
-}
-
-function renderTracker() {
-  const list = document.getElementById('entries-list');
-  const noEnt = document.getElementById('no-entries');
-  list.innerHTML = '';
-
-  if (entries.length === 0) {
-    noEnt.style.display = '';
-  } else {
-    noEnt.style.display = 'none';
-    [...entries].reverse().forEach((e, ri) => {
-      const i = entries.length - 1 - ri;
-      const div = document.createElement('div');
-      div.className = 'entry-item';
-      div.innerHTML = `<div class="e-dot"></div><div class="e-info"><div class="e-date">${fmtDate(e.date)}</div><div class="e-amt">${Math.round(e.amount).toLocaleString('ru-RU')} ₽</div></div><button class="e-del" onclick="deleteEntry(${i})">✕</button>`;
-      list.appendChild(div);
-    });
-  }
-
-  document.getElementById('v-cnt').textContent = entries.length;
-  if (entries.length > 0) {
-    const last = entries[entries.length-1];
-    document.getElementById('v-last').textContent = fmtShort(last.amount);
-    if (entries.length > 1) {
-      const delta = last.amount - entries[0].amount;
-      const el = document.getElementById('v-delta');
-      el.textContent = (delta>=0?'+':'') + fmtShort(Math.abs(delta));
-      el.className = 'sv ' + (delta>=0?'dpos':'dneg');
+// ════ RENDER TRACKER ════
+function renderTracker(){
+  const list=document.getElementById('elist');
+  const noE=document.getElementById('no-ent');
+  list.innerHTML='';
+  noE.style.display=entries.length?'none':'';
+  [...entries].reverse().forEach((e,ri)=>{
+    const i=entries.length-1-ri;
+    const d=new Date(e.date+'T00:00:00');
+    const ds=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+    const div=document.createElement('div');
+    div.className='eitem';
+    div.innerHTML='<div class="edot"></div><div class="einfo"><div class="edate">'+ds+'</div><div class="eamt">'+fmtInt(e.amount)+' ₽</div></div><button class="edel" onclick="deleteEntry('+i+')">✕</button>';
+    list.appendChild(div);
+  });
+  document.getElementById('v-cnt').textContent=entries.length;
+  if(entries.length){
+    const last=entries[entries.length-1];
+    document.getElementById('v-last').textContent=fShort(last.amount);
+    if(entries.length>1){
+      const first=entries[0];
+      const delta=last.amount-first.amount;
+      const el=document.getElementById('v-delta');
+      el.textContent=(delta>=0?'+':'')+fShort(Math.abs(delta));
+      el.className='sv '+(delta>=0?'dp':'dn');
     } else {
-      const el = document.getElementById('v-delta');
-      el.textContent = '—'; el.className = 'sv';
+      const el=document.getElementById('v-delta');
+      el.textContent='—'; el.className='sv';
     }
   } else {
-    document.getElementById('v-last').textContent = '—';
-    document.getElementById('v-delta').textContent = '—';
-    document.getElementById('v-delta').className = 'sv';
+    document.getElementById('v-last').textContent='—';
+    const el=document.getElementById('v-delta');
+    el.textContent='—'; el.className='sv';
   }
-  renderChart();
+  if(document.getElementById('page-tracker').classList.contains('active')) renderChart();
 }
 
-// ══════════════════════════════════════════
-// CHART (canvas, date-accurate x-axis)
-// ══════════════════════════════════════════
-let chartPts = [];
-let activeIdx = -1;
+// ════ CHART ════
+let cPts=[];
+let aIdx=-1;
 
-function renderChart() {
-  const wrap = document.getElementById('chart-wrap');
-  const canvas = document.getElementById('chart');
-  const empty = document.getElementById('chart-empty');
+function niceSteps(minV,maxV,nTicks){
+  const range=maxV-minV||1;
+  const rough=range/(nTicks-1);
+  const mag=Math.pow(10,Math.floor(Math.log10(rough)));
+  const nice=[1,2,5,10,20,25,50,100];
+  let step=mag;
+  for(const f of nice){ if(mag*f>=rough){ step=mag*f; break; } }
+  const lo=Math.floor(minV/step)*step;
+  const steps=[];
+  for(let v=lo;steps.length<nTicks+2;v+=step){
+    const rv=Math.round(v);
+    if(rv>=Math.floor(minV)-step) steps.push(rv);
+    if(rv>maxV+step) break;
+  }
+  return steps.filter(v=>v>=Math.floor(minV)-step&&v<=Math.ceil(maxV)+step);
+}
 
-  if (entries.length === 0) {
-    canvas.style.display = 'none';
-    empty.style.display = 'flex';
-    document.getElementById('s-line').style.display = 'none';
-    document.getElementById('s-dot').style.display = 'none';
-    document.getElementById('ct-date').textContent = 'Нет данных';
-    document.getElementById('ct-val').textContent = '—';
-    document.getElementById('ct-delta').textContent = '';
+function fAxis(v){
+  if(Math.abs(v)>=1e9) return (v/1e9).toFixed(1)+' млрд';
+  if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+' М';
+  if(Math.abs(v)>=1e3) return fmtInt(v/1e3)+' К';
+  return fmtInt(v);
+}
+
+function renderChart(){
+  const wrap=document.getElementById('cwrap');
+  const canvas=document.getElementById('chart');
+  const empty=document.getElementById('echrt');
+  const sline=document.getElementById('sline');
+  const sdot=document.getElementById('sdot');
+
+  if(!entries.length){
+    canvas.style.display='none'; empty.style.display='flex';
+    sline.style.display='none'; sdot.style.display='none';
+    document.getElementById('ct-d').textContent='Нет данных';
+    document.getElementById('ct-v').textContent='—';
+    document.getElementById('ct-dl').innerHTML='&nbsp;';
     return;
   }
 
-  empty.style.display = 'none';
-  canvas.style.display = 'block';
+  empty.style.display='none';
+  canvas.style.display='block';
 
-  const W = wrap.offsetWidth || 340;
-  const H = 180;
-  const PR = window.devicePixelRatio || 1;
-  canvas.width = W * PR;
-  canvas.height = H * PR;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
+  const W=wrap.offsetWidth||340;
+  const H=220;
+  const PR=window.devicePixelRatio||1;
+  canvas.width=W*PR; canvas.height=H*PR;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  sline.style.height=H+'px';
 
-  const ctx = canvas.getContext('2d');
-  ctx.scale(PR, PR);
+  const ctx=canvas.getContext('2d');
+  ctx.scale(PR,PR);
+  ctx.clearRect(0,0,W,H);
 
-  const PAD = {t: 8, r: 14, b: 38, l: 52}; // bottom for x-axis, left for y-axis
-  const gw = W - PAD.l - PAD.r;
-  const gh = H - PAD.t - PAD.b;
+  const vals=entries.map(e=>e.amount);
+  const minV=Math.min(...vals);
+  const maxV=Math.max(...vals);
+  const ySteps=niceSteps(minV,maxV,5);
+  const yMin=ySteps[0];
+  const yMax=ySteps[ySteps.length-1];
+  const yRange=yMax-yMin||1;
 
-  const vals = entries.map(e => e.amount);
-  const minV = Math.min(...vals);
-  const maxV = Math.max(...vals);
+  ctx.font='500 10px Manrope,-apple-system,sans-serif';
+  ctx.textAlign='right';
+  let maxLW=0;
+  ySteps.forEach(v=>{ const w=ctx.measureText(fAxis(v)).width; if(w>maxLW) maxLW=w; });
+  const pad={t:12,r:14,b:32,l:maxLW+12};
+  const gw=W-pad.l-pad.r;
+  const gh=H-pad.t-pad.b;
 
-  // Date range → timestamps for proportional x
-  const dates = entries.map(e => new Date(e.date + 'T00:00:00').getTime());
-  const minD = dates[0];
-  const maxD = dates[dates.length-1];
-  const dateRange = maxD - minD || 1;
+  const dates=entries.map(e=>new Date(e.date+'T00:00:00').getTime());
+  const tMin=dates[0];
+  const tMax=dates[dates.length-1];
+  const tRange=tMax-tMin||1;
 
-  function toX(ts) {
-    if (entries.length === 1) return PAD.l + gw / 2;
-    return PAD.l + ((ts - minD) / dateRange) * gw;
-  }
-  function toY(val) {
-    const range = maxV - minV || 1;
-    return PAD.t + gh - ((val - minV) / range) * gh;
-  }
+  function xOf(ts){ return entries.length===1?pad.l+gw/2:pad.l+((ts-tMin)/tRange)*gw; }
+  function yOf(v){ return pad.t+gh-((v-yMin)/yRange)*gh; }
 
-  chartPts = entries.map((e, i) => ({
-    x: toX(dates[i]), y: toY(e.amount), entry: e, idx: i
-  }));
+  cPts=entries.map((e,i)=>({x:xOf(dates[i]),y:yOf(e.amount),entry:e,idx:i}));
 
-  // ── Y-axis grid & labels ──
-  ctx.font = `500 10px Manrope, -apple-system, sans-serif`;
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-
-  const yTicks = 4;
-  for (let i = 0; i <= yTicks; i++) {
-    const val = minV + (maxV - minV) * (i / yTicks);
-    const y = toY(val);
-    // Grid line
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
-    ctx.lineWidth = 1;
-    ctx.moveTo(PAD.l, y);
-    ctx.lineTo(PAD.l + gw, y);
-    ctx.stroke();
-    // Label
-    ctx.fillStyle = '#9A9A9A';
-    ctx.fillText(fmtShort(val), PAD.l - 5, y);
-  }
-
-  // ── X-axis labels (date-proportional ticks) ──
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-
-  // Choose smart tick positions based on actual dates
-  const maxXTicks = Math.min(entries.length, 5);
-  let tickIndices = [];
-  if (entries.length <= maxXTicks) {
-    tickIndices = entries.map((_,i) => i);
-  } else {
-    // always include first and last, spread rest proportionally
-    tickIndices = [0];
-    const step = (entries.length - 1) / (maxXTicks - 1);
-    for (let i = 1; i < maxXTicks - 1; i++) tickIndices.push(Math.round(i * step));
-    tickIndices.push(entries.length - 1);
-  }
-
-  tickIndices.forEach(i => {
-    const p = chartPts[i];
-    const d = new Date(entries[i].date + 'T00:00:00');
-    const label = d.toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
-    // Tick mark
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 1;
-    ctx.moveTo(p.x, PAD.t + gh);
-    ctx.lineTo(p.x, PAD.t + gh + 4);
-    ctx.stroke();
-    // Label
-    ctx.fillStyle = '#9A9A9A';
-    ctx.fillText(label, p.x, PAD.t + gh + 7);
+  // ── Y grid & labels ──
+  ctx.textAlign='right';
+  ySteps.forEach(v=>{
+    const y=yOf(v);
+    if(y<pad.t-2||y>pad.t+gh+2) return;
+    ctx.strokeStyle='rgba(0,0,0,0.06)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gw,y); ctx.stroke();
+    ctx.fillStyle='#9A9A9A';
+    ctx.font='500 10px Manrope,-apple-system,sans-serif';
+    ctx.fillText(fAxis(v),pad.l-5,y+3.5);
   });
 
+  // ── Year separators ──
+  // find unique years in date range
+  const startYearD=new Date(tMin).getFullYear();
+  const endYearD=new Date(tMax).getFullYear();
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle='rgba(0,0,0,0.08)';
+  ctx.lineWidth=1;
+  for(let yr=startYearD+1;yr<=endYearD;yr++){
+    const ts=new Date(yr,0,1).getTime();
+    if(ts<tMin||ts>tMax) continue;
+    const x=xOf(ts);
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+gh); ctx.stroke();
+    // year label at bottom
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.font='500 9.5px Manrope,-apple-system,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(yr,x,pad.t+gh+13);
+    ctx.setLineDash([3,3]);
+  }
+  ctx.setLineDash([]);
+
+  // ── X month labels ──
+  // only show month names, no year — between separators
+  ctx.textAlign='center';
+  ctx.fillStyle='#ADADAD';
+  ctx.font='500 10px Manrope,-apple-system,sans-serif';
+  const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  // determine pixel width per month
+  const rangeMs=tMax-tMin;
+  const rangeDays=rangeMs/86400000;
+  // if range < 60 days show each entry date, else show months
+  if(rangeDays<60){
+    entries.forEach((_,i)=>{
+      const d=new Date(dates[i]);
+      const lbl=d.getDate()+' '+MN[d.getMonth()];
+      const x=cPts[i].x;
+      ctx.fillText(lbl,x,H-6);
+    });
+  } else {
+    // find first of each month in range
+    const visited=new Set();
+    const step=rangeDays>730?3:1; // every month or every quarter
+    for(let ts=tMin;ts<=tMax;ts+=86400000*28){
+      const d=new Date(ts);
+      const key=d.getFullYear()+'-'+d.getMonth();
+      if(visited.has(key)) continue;
+      visited.add(key);
+      const monthTs=new Date(d.getFullYear(),d.getMonth(),1).getTime();
+      if(monthTs<tMin||monthTs>tMax) continue;
+      const x=xOf(monthTs);
+      // only draw if not too close to a year separator
+      let nearSep=false;
+      for(let yr=startYearD+1;yr<=endYearD;yr++){
+        const sx=xOf(new Date(yr,0,1).getTime());
+        if(Math.abs(x-sx)<20){nearSep=true;break;}
+      }
+      if(!nearSep && x>pad.l+15 && x<pad.l+gw-15) ctx.fillText(MN[d.getMonth()],x,H-6);
+    }
+  }
+
   // ── Gradient fill ──
-  const grad = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + gh);
-  grad.addColorStop(0, 'rgba(232,0,28,0.13)');
-  grad.addColorStop(1, 'rgba(232,0,28,0)');
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
+  grad.addColorStop(0,'rgba(232,0,28,0.12)');
+  grad.addColorStop(1,'rgba(232,0,28,0.00)');
   ctx.beginPath();
-  ctx.moveTo(chartPts[0].x, PAD.t + gh);
-  chartPts.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(chartPts[chartPts.length-1].x, PAD.t + gh);
+  ctx.moveTo(cPts[0].x,pad.t+gh);
+  cPts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(cPts[cPts.length-1].x,pad.t+gh);
   ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
+  ctx.fillStyle=grad; ctx.fill();
 
   // ── Line ──
   ctx.beginPath();
-  chartPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-  ctx.strokeStyle = '#E8001C';
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  ctx.stroke();
+  cPts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='#E8001C'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
 
-  // ── Init to last ──
-  if (activeIdx < 0 || activeIdx >= entries.length) activeIdx = entries.length - 1;
-  updateTooltip(activeIdx);
-}
-
-function updateTooltip(idx) {
-  if (!chartPts.length || idx < 0) return;
-  activeIdx = idx;
-  const p = chartPts[idx];
-  const e = p.entry;
-  document.getElementById('ct-date').textContent = fmtDate(e.date);
-  document.getElementById('ct-val').textContent = Math.round(e.amount).toLocaleString('ru-RU') + ' ₽';
-  const deltaEl = document.getElementById('ct-delta');
-  if (idx > 0) {
-    const delta = e.amount - entries[idx-1].amount;
-    deltaEl.textContent = (delta>=0?'+':'') + Math.round(delta).toLocaleString('ru-RU') + ' ₽ к предыдущей';
-    deltaEl.style.color = delta >= 0 ? '#1AAF5D' : '#E8001C';
-  } else {
-    deltaEl.textContent = '';
-  }
-  const line = document.getElementById('s-line');
-  const dot = document.getElementById('s-dot');
-  line.style.display = 'block';
-  line.style.left = p.x + 'px';
-  dot.style.display = 'block';
-  dot.style.left = p.x + 'px';
-  dot.style.top = p.y + 'px';
-}
-
-function getClosestIdx(clientX) {
-  const wrap = document.getElementById('chart-wrap');
-  const rect = wrap.getBoundingClientRect();
-  const x = clientX - rect.left;
-  if (!chartPts.length) return -1;
-  let best = 0, bestD = Infinity;
-  chartPts.forEach((p, i) => {
-    const d = Math.abs(p.x - x);
-    if (d < bestD) { bestD = d; best = i; }
+  // ── Points ──
+  cPts.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='rgba(180,0,0,0.5)'; ctx.lineWidth=2; ctx.stroke();
   });
+
+  if(aIdx<0||aIdx>=entries.length) aIdx=entries.length-1;
+  updateTip(aIdx);
+}
+
+function updateTip(i){
+  if(!cPts.length||i<0||i>=cPts.length) return;
+  aIdx=i;
+  const p=cPts[i];
+  const e=p.entry;
+  const d=new Date(e.date+'T00:00:00');
+  document.getElementById('ct-d').textContent=d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('ct-v').textContent=fmtInt(e.amount)+' ₽';
+  const dlEl=document.getElementById('ct-dl');
+  if(i>0){
+    const prev=entries[i-1].amount;
+    const delta=e.amount-prev;
+    dlEl.textContent=(delta>=0?'+':'')+fmtInt(delta)+' ₽ к предыдущей записи';
+    dlEl.style.color=delta>=0?'#1AAF5D':'#E8001C';
+  } else {
+    dlEl.innerHTML='&nbsp;'; // keep height
+  }
+  const sl=document.getElementById('sline');
+  const sd=document.getElementById('sdot');
+  sl.style.left=p.x+'px'; sl.style.height='220px'; sl.style.display='block';
+  sd.style.left=p.x+'px'; sd.style.top=p.y+'px'; sd.style.display='block';
+}
+
+function closestIdx(cx){
+  const rect=document.getElementById('cwrap').getBoundingClientRect();
+  const x=cx-rect.left;
+  if(!cPts.length) return -1;
+  let best=0,bd=Infinity;
+  cPts.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;best=i;} });
   return best;
 }
 
-function handleMove(clientX) {
-  if (!chartPts.length) return;
-  const idx = getClosestIdx(clientX);
-  if (idx >= 0) updateTooltip(idx);
-}
+const cwrap=document.getElementById('cwrap');
+cwrap.addEventListener('mousemove',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
+cwrap.addEventListener('touchmove',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
+cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
+cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
-const cw = document.getElementById('chart-wrap');
-cw.addEventListener('mousemove', e => handleMove(e.clientX));
-cw.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
-cw.addEventListener('touchstart', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
-cw.addEventListener('click', e => handleMove(e.clientX));
-
-// ══════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════
+// ════ INIT ════
 renderTracker();
-updateGoalSummary();
-window.addEventListener('resize', () => {
-  if (document.getElementById('page-tracker').classList.contains('active')) renderChart();
+calcSqmPrice();
+window.addEventListener('resize',()=>{
+  if(document.getElementById('page-tracker').classList.contains('active')) renderChart();
 });
-
-// PWA Install
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  document.getElementById('ibanner').style.display = 'flex';
-});
-document.getElementById('ibtn').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  document.getElementById('ibanner').style.display = 'none';
-});
-document.getElementById('iclose').addEventListener('click', () => {
-  document.getElementById('ibanner').style.display = 'none';
-});
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>
