@@ -14,6 +14,8 @@
 <style>
 :root{
   --red:#E8001C;--red-l:rgba(232,0,28,0.08);--red-m:#FFD6DA;--red-d:#B5001A;
+  --blue:#9ACEEB;--blue-d:#5A9DBF;--blue-l:rgba(154,206,235,0.12);--blue-brd:rgba(154,206,235,0.45);
+  --darkblue:#1A3A5C;
   --txt:#0D0D0D;--txt2:#5A5A5A;--txt3:#9A9A9A;
   --bg:#FFFFFF;--bg2:#F7F7F7;--bg3:#EFEFEF;
   --brd:rgba(0,0,0,0.08);--r:16px;--rs:10px;
@@ -112,7 +114,7 @@ tbody td:first-child{text-align:left;font-weight:700}
 .sc.hi{background:var(--red);border-color:var(--red)}
 .sc.hi .sl{color:rgba(255,255,255,.7)}
 .sc.hi .sv{color:#fff}
-.dp{color:#1AAF5D}.dn{color:var(--red)}
+.dp{color:var(--darkblue)}.dn{color:var(--red)}
 
 /* chart */
 .cbox{background:var(--bg);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
@@ -122,8 +124,8 @@ tbody td:first-child{text-align:left;font-weight:700}
 .ct-dl{font-size:12px;font-weight:600;margin-top:2px;min-height:16px}
 .cwrap{position:relative;width:100%;height:220px;cursor:crosshair;user-select:none}
 canvas#chart{display:block;position:absolute;top:0;left:0}
-.sline{position:absolute;top:0;width:1px;background:var(--red);opacity:0.6;pointer-events:none;display:none}
-.sdot{position:absolute;width:10px;height:10px;background:#fff;border:2.5px solid rgba(180,0,0,0.6);border-radius:50%;pointer-events:none;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(232,0,28,.15)}
+.sline{position:absolute;top:0;width:1px;background:var(--blue-d);opacity:0.5;pointer-events:none;display:none}
+.sdot{position:absolute;width:10px;height:10px;background:#fff;border:2.5px solid rgba(90,157,191,0.7);border-radius:50%;pointer-events:none;display:none;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(154,206,235,.2)}
 .echrt{height:220px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:13px;font-weight:500;flex-direction:column;gap:8px}
 
 /* add form */
@@ -197,7 +199,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
               <input type="text" id="p-deposit" value="1 000 000" inputmode="numeric" oninput="fmtThis(this)">
             </div>
           </div>
-          <div id="dep-auto-lbl" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--red-l);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--red)"></div>
+          <div id="dep-auto-lbl" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--txt)"></div>
           <div class="tile-grid" style="margin-bottom:12px">
             <div class="fi">
               <label>Взнос в месяц (₽)</label>
@@ -260,7 +262,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
                 <input type="text" id="p-sqm-price" value="200 000" inputmode="numeric" oninput="fmtThis(this);calcSqmPrice()">
               </div>
             </div>
-            <div id="sqm-total" style="padding:10px 12px;background:var(--red-l);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--red);margin-bottom:12px"></div>
+            <div id="sqm-total" style="padding:10px 12px;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--txt);margin-bottom:12px"></div>
           </div>
           <div class="tile-grid">
             <div class="fi">
@@ -394,7 +396,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
     <div class="page" id="page-credit">
 
       <!-- Suggestion banner from forecast -->
-      <div id="cr-suggestion" style="display:none;margin-bottom:14px;background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r);padding:16px">
+      <div id="cr-suggestion" style="display:none;margin-bottom:14px;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--r);padding:16px">
         <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:4px">У вас уже есть сценарий накоплений</div>
         <div style="font-size:12.5px;color:var(--txt2);line-height:1.5;margin-bottom:12px" id="cr-suggestion-text"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -442,8 +444,8 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           <div class="sc"><div class="sl">Итого выплат</div><div class="sv" id="cr-total">—</div></div>
         </div>
 
-        <div id="cr-early-block" style="display:none;background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--rs);padding:14px;margin-bottom:14px;font-size:13px;line-height:1.6">
-          <div style="font-weight:700;color:var(--red);margin-bottom:6px">Досрочное погашение</div>
+        <div id="cr-early-block" style="display:none;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--rs);padding:14px;margin-bottom:14px;font-size:13px;line-height:1.6">
+          <div style="font-weight:700;color:var(--txt);margin-bottom:6px">Досрочное погашение</div>
           <div id="cr-early-text" style="color:var(--txt2)"></div>
         </div>
 
@@ -454,10 +456,10 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
           <div style="display:flex;gap:20px;padding:10px 16px 14px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
-              <div style="width:12px;height:12px;border-radius:3px;background:rgba(232,0,28,0.75)"></div>Основной долг
+              <div style="width:12px;height:12px;border-radius:3px;background:rgba(90,157,191,0.85)"></div>Основной долг
             </div>
             <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
-              <div style="width:12px;height:12px;border-radius:3px;background:rgba(232,0,28,0.2)"></div>Проценты
+              <div style="width:12px;height:12px;border-radius:3px;background:rgba(154,206,235,0.35)"></div>Проценты
             </div>
           </div>
         </div>
@@ -1178,8 +1180,8 @@ function renderChart(){
 
   // ── Gradient fill ──
   const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
-  grad.addColorStop(0,'rgba(232,0,28,0.12)');
-  grad.addColorStop(1,'rgba(232,0,28,0.00)');
+  grad.addColorStop(0,'rgba(154,206,235,0.18)');
+  grad.addColorStop(1,'rgba(154,206,235,0.00)');
   ctx.beginPath();
   ctx.moveTo(cPts[0].x,pad.t+gh);
   cPts.forEach(p=>ctx.lineTo(p.x,p.y));
@@ -1190,13 +1192,13 @@ function renderChart(){
   // ── Line ──
   ctx.beginPath();
   cPts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle='#E8001C'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+  ctx.strokeStyle='#5A9DBF'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
 
   // ── Points ──
   cPts.forEach(p=>{
     ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
     ctx.fillStyle='#fff'; ctx.fill();
-    ctx.strokeStyle='rgba(180,0,0,0.5)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='rgba(90,157,191,0.6)'; ctx.lineWidth=2; ctx.stroke();
   });
 
   if(aIdx<0||aIdx>=entries.length) aIdx=entries.length-1;
@@ -1216,7 +1218,7 @@ function updateTip(i){
     const prev=entries[i-1].amount;
     const delta=e.amount-prev;
     dlEl.textContent=(delta>=0?'+':'')+fmtInt(delta)+' ₽ к предыдущей записи';
-    dlEl.style.color=delta>=0?'#1AAF5D':'#E8001C';
+    dlEl.style.color=delta>=0?'var(--darkblue)':'#E8001C';
   } else {
     dlEl.innerHTML='&nbsp;'; // keep height
   }
@@ -1361,10 +1363,10 @@ function calcCredit(){
     const intH=r.interest/yMax2*gh;
     const yBase=pad.t+gh;
     // interest (bottom, lighter)
-    ctx.fillStyle='rgba(232,0,28,0.2)';
+    ctx.fillStyle='rgba(154,206,235,0.35)';
     ctx.fillRect(x,yBase-intH,barW,intH);
     // principal (top, darker)
-    ctx.fillStyle='rgba(232,0,28,0.75)';
+    ctx.fillStyle='rgba(90,157,191,0.85)';
     ctx.fillRect(x,yBase-intH-princH,barW,princH);
     // year label
     if(idx%Math.ceil(yearRows.length/8)===0||idx===yearRows.length-1){
