@@ -230,9 +230,14 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           <div class="tile-grid" style="margin-bottom:12px">
             <div class="fi">
               <label>Тип цели</label>
-              <select id="p-goal-type"><option value="apartment">Жильё</option></select>
+              <select id="p-goal-type" onchange="onGoalTypeChange()">
+                <option value="apartment">Жильё</option>
+                <option value="consumer">Потребительский</option>
+              </select>
             </div>
           </div>
+          <!-- Apartment fields -->
+          <div id="goal-apartment-fields">
           <!-- Price mode -->
           <div class="tile-grid" style="margin-bottom:12px">
             <div class="fi">
@@ -273,6 +278,31 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
             <div class="fi">
               <label>Первоначальный взнос (%)</label>
               <input type="text" id="p-downpay" value="50" inputmode="decimal" oninput="fmtThis(this)">
+            </div>
+          </div>
+          </div><!-- /goal-apartment-fields -->
+
+          <!-- Consumer fields -->
+          <div id="goal-consumer-fields" style="display:none">
+            <div class="tile-grid" style="margin-bottom:12px">
+              <div class="fi">
+                <label>Стоимость (₽)</label>
+                <input type="text" id="p-consumer-price" value="500 000" inputmode="numeric" oninput="fmtThis(this)">
+              </div>
+            </div>
+            <div class="tile-grid" style="margin-bottom:12px">
+              <div class="fi">
+                <label>Рост цен на товар (% / год)</label>
+                <input type="text" id="p-consumer-growth" value="5" inputmode="decimal" oninput="fmtThis(this)">
+                <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                  <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="p-consumer-use-infl" onchange="onConsumerInflToggle()"><div class="tgl-track"></div></label>
+                  <span style="font-size:11.5px;color:var(--txt2)">Использовать инфляцию</span>
+                </div>
+              </div>
+              <div class="fi">
+                <label>Первоначальный взнос (%)</label>
+                <input type="text" id="p-consumer-downpay" value="20" inputmode="decimal" oninput="fmtThis(this)">
+              </div>
             </div>
           </div>
         </div>
@@ -348,7 +378,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 14px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rs)">
         <label class="tgl"><input type="checkbox" id="save-scenario"><div class="tgl-track"></div></label>
-        <span style="font-size:13px;font-weight:500;color:var(--txt2)">Сохранять текущий сценарий из раздела «Прогноз»</span>
+        <span style="font-size:13px;font-weight:500;color:var(--txt2)">Сохранять текущий сценарий из разделов «Прогноз» и «Кредит»</span>
       </div>
 
       <div class="sc-grid">
@@ -446,6 +476,8 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
         </div>
       </div>
+
+      <div id="cr-loan-info" style="display:none;margin-bottom:14px;padding:12px 14px;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--txt)"></div>
 
       <div id="cr-results" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -572,20 +604,19 @@ function updateCreditSuggestion(){
   const r=forecastGoalRow;
   const housing=fmtInt(Math.round(r.housing))+' ₽';
   const downpay=fmtInt(Math.round(r.endBal))+' ₽';
+  const loan=Math.max(0,r.housing-r.endBal);
   document.getElementById('cr-suggestion-text').innerHTML=
-    'Стоимость жилья: <b>'+housing+'</b> (из столбца «Стоимость цели», строка с Долей 100%)<br>'+
-    'Первоначальный взнос: <b>'+downpay+'</b> (из столбца «Конец года», строка с Долей 100%)';
+    'Стоимость цели: <b>'+housing+'</b> (столбец «Стоимость цели», строка Доля 100%)<br>'+
+    'Первоначальный взнос: <b>'+downpay+'</b> (столбец «Конец года», строка Доля 100%)<br>'+
+    'Сумма кредита: <b>'+fmtInt(Math.round(loan))+' ₽</b>';
   banner.style.display='';
 }
 
 function applySuggestion(){
   if(!forecastGoalRow) return;
   const r=forecastGoalRow;
-  // Format with spaces for display
-  const hStr=fmtInt(Math.round(r.housing));
-  const dStr=fmtInt(Math.round(r.endBal));
-  document.getElementById('cr-price').value=hStr;
-  document.getElementById('cr-down').value=dStr;
+  document.getElementById('cr-price').value=fmtInt(Math.round(r.housing));
+  document.getElementById('cr-down').value=fmtInt(Math.round(r.endBal));
   document.getElementById('cr-suggestion').style.display='none';
   suggestionDismissed=true;
   calcCredit();
@@ -621,6 +652,25 @@ function onDepModeChange(){
   } else al.style.display='none';
 }
 
+// ════ GOAL TYPE ════
+function onGoalTypeChange(){
+  const v=document.getElementById('p-goal-type').value;
+  document.getElementById('goal-apartment-fields').style.display=v==='apartment'?'':'none';
+  document.getElementById('goal-consumer-fields').style.display=v==='consumer'?'':'none';
+}
+function onConsumerInflToggle(){
+  const useInfl=document.getElementById('p-consumer-use-infl').checked;
+  if(useInfl) document.getElementById('p-consumer-growth').value=document.getElementById('p-infl').value;
+  document.getElementById('p-consumer-growth').readOnly=useInfl;
+  document.getElementById('p-consumer-growth').style.opacity=useInfl?'0.5':'1';
+}
+function getGoalGrowth(){
+  return document.getElementById('p-goal-type').value==='consumer'?nv('p-consumer-growth'):nv('p-growth');
+}
+function getGoalDownpay(){
+  return document.getElementById('p-goal-type').value==='consumer'?nv('p-consumer-downpay'):nv('p-downpay');
+}
+
 // ════ PRICE MODE ════
 function onPriceModeChange(){
   const v=document.getElementById('p-price-mode').value;
@@ -636,6 +686,8 @@ function calcSqmPrice(){
   document.getElementById('sqm-total').textContent='Стоимость жилья: '+fmtInt(total)+' ₽';
 }
 function getPrice(){
+  const goalType=document.getElementById('p-goal-type').value;
+  if(goalType==='consumer') return nv('p-consumer-price');
   const mode=document.getElementById('p-price-mode').value;
   if(mode==='sqm') return nv('p-sqm')*nv('p-sqm-price');
   return nv('p-price');
@@ -745,8 +797,8 @@ function calcForecast(){
   const cushionOn=document.getElementById('p-cushion-on').checked;
   const cushionAmt=nv('p-cushion');
   const price0=getPrice();
-  const priceGrowthNom=nv('p-growth');
-  const downpay=nv('p-downpay')/100;
+  const priceGrowthNom=getGoalGrowth();
+  const downpay=getGoalDownpay()/100;
   const ytype=document.getElementById('p-ytype').value;
   const yfixed=nv('p-yfixed');
   const infl=nv('p-infl');
@@ -796,8 +848,10 @@ function calcForecast(){
   }
 
   // Save goal row for credit suggestion
+  const prevGoalYr = forecastGoalRow ? forecastGoalRow.yr : null;
   forecastGoalRow = goalIdx >= 0 ? rows[goalIdx] : null;
-  suggestionDismissed = false;
+  // Reset dismissed only if goal year changed (new scenario)
+  if(forecastGoalRow && forecastGoalRow.yr !== prevGoalYr) suggestionDismissed = false;
 
   const tbody=document.getElementById('fc-tbody');
   tbody.innerHTML='';
@@ -858,7 +912,9 @@ function exportCSV(){
     csv+='\n#SCENARIO\n';
     const fields=['p-infl','p-dep-mode','p-deposit','p-contrib','p-cushion','p-cushion-on',
       'p-goal-type','p-price-mode','p-price','p-sqm','p-sqm-price','p-growth','p-downpay',
-      'p-ytype','p-yfixed'];
+      'p-consumer-price','p-consumer-growth','p-consumer-downpay','p-consumer-use-infl',
+      'p-ytype','p-yfixed',
+      'cr-price','cr-down','cr-rate','cr-years','cr-term-unit','cr-extra','cr-from-goal'];
     fields.forEach(id=>{
       const el=document.getElementById(id);
       if(!el) return;
@@ -927,10 +983,13 @@ function importCSV(input){
       });
       onDepModeChange();
       onPriceModeChange();
+      onGoalTypeChange();
+      onConsumerInflToggle();
       onYieldTypeChange();
       if(restoredYrs) renderYR();
       calcSqmPrice();
-      msg+=(msg?'\n':'')+'Сценарий прогноза восстановлен.';
+      calcCredit();
+      msg+=(msg?'\n':'')+'Сценарий прогноза и кредита восстановлен.';
     }
     if(msg) alert(msg);
   };
@@ -1259,15 +1318,27 @@ function calcCredit(){
   const price=rawNum(document.getElementById('cr-price').value);
   const down=rawNum(document.getElementById('cr-down').value);
   const rateY=rawNum(document.getElementById('cr-rate').value);
-  const years=rawNum(document.getElementById('cr-years').value);
+  const termVal=rawNum(document.getElementById('cr-years').value);
+  const termUnit=document.getElementById('cr-term-unit')?document.getElementById('cr-term-unit').value:'years';
   const extra=rawNum(document.getElementById('cr-extra').value)||0;
+  const fromGoal=document.getElementById('cr-from-goal')&&document.getElementById('cr-from-goal').checked;
+
+  // Convert term to months
+  let n;
+  if(termUnit==='months') n=Math.round(termVal);
+  else if(termUnit==='days') n=Math.round(termVal/30.44);
+  else n=Math.round(termVal*12);
+
+  // Determine start year for table
+  let startYear=new Date().getFullYear();
+  if(fromGoal && forecastGoalRow) startYear=forecastGoalRow.yr;
 
   const S=Math.max(0,price-down);
-  const n=Math.round(years*12);
   const i=rateY/100/12;
 
   if(S<=0||n<=0||i<0){
     document.getElementById('cr-results').style.display='none';
+    document.getElementById('cr-loan-info').style.display='none';
     return;
   }
 
@@ -1278,7 +1349,11 @@ function calcCredit(){
 
   document.getElementById('cr-results').style.display='';
   document.getElementById('cr-payment').textContent=fmtInt(Math.round(A))+' ₽';
-  document.getElementById('cr-loan').textContent=fShort(S);
+  document.getElementById('cr-loan').textContent=fmtInt(Math.round(S))+' ₽';
+  // Always show full loan amount info block
+  const li=document.getElementById('cr-loan-info');
+  li.textContent='Сумма кредита: '+fmtInt(Math.round(S))+' ₽';
+  li.style.display='';
 
   // Build amortization schedule (with optional extra payment)
   let balance=S;
@@ -1286,7 +1361,7 @@ function calcCredit(){
   let totalInterest=0;
   let month=0;
   const yearRows=[];
-  let curYear={yr:new Date().getFullYear(),principal:0,interest:0,payment:A+extra};
+  let curYear={yr:startYear,principal:0,interest:0,payment:A+extra};
   let actualMonths=0;
 
   while(balance>0.01 && month<n*2){
@@ -1313,8 +1388,8 @@ function calcCredit(){
   }
 
   const overpay=totalInterest;
-  document.getElementById('cr-overpay').textContent=fShort(Math.round(overpay));
-  document.getElementById('cr-total').textContent=fShort(Math.round(S+overpay));
+  document.getElementById('cr-overpay').textContent=fmtInt(Math.round(overpay))+' ₽';
+  document.getElementById('cr-total').textContent=fmtInt(Math.round(S+overpay))+' ₽';
 
   // Early payment block
   const earlyBlock=document.getElementById('cr-early-block');
