@@ -393,6 +393,16 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
     <!-- ══════════ КРЕДИТ ══════════ -->
     <div class="page" id="page-credit">
 
+      <!-- Suggestion banner from forecast -->
+      <div id="cr-suggestion" style="display:none;margin-bottom:14px;background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r);padding:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:4px">У вас уже есть сценарий накоплений</div>
+        <div style="font-size:12.5px;color:var(--txt2);line-height:1.5;margin-bottom:12px" id="cr-suggestion-text"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="applySuggestion()" style="padding:9px 18px;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Использовать</button>
+          <button onclick="dismissSuggestion()" style="padding:9px 18px;background:none;border:1.5px solid var(--brd);border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer">Отмена</button>
+        </div>
+      </div>
+
       <div class="fb">
         <div class="fbt" style="margin-bottom:16px">Параметры ипотеки</div>
         <div class="tile-grid" style="margin-bottom:12px">
@@ -531,14 +541,46 @@ function fShort(n){
   return fmtInt(n);
 }
 
-// ════ NAV ════
+// Global store for forecast goal row
+let forecastGoalRow = null;
+let suggestionDismissed = false;
 function showPage(name){
   ['forecast','tracker','credit'].forEach(p=>{
     document.getElementById('page-'+p).classList.toggle('active',p===name);
     document.getElementById('nb-'+p).classList.toggle('on',p===name);
   });
   if(name==='tracker') renderChart();
-  if(name==='credit') calcCredit();
+  if(name==='credit'){ updateCreditSuggestion(); calcCredit(); }
+}
+
+function updateCreditSuggestion(){
+  const banner=document.getElementById('cr-suggestion');
+  if(!forecastGoalRow||suggestionDismissed){ banner.style.display='none'; return; }
+  const r=forecastGoalRow;
+  const housing=fmtInt(Math.round(r.housing))+' ₽';
+  const downpay=fmtInt(Math.round(r.endBal))+' ₽';
+  document.getElementById('cr-suggestion-text').innerHTML=
+    'Стоимость жилья: <b>'+housing+'</b> (из столбца «Стоимость цели», строка с Долей 100%)<br>'+
+    'Первоначальный взнос: <b>'+downpay+'</b> (из столбца «Конец года», строка с Долей 100%)';
+  banner.style.display='';
+}
+
+function applySuggestion(){
+  if(!forecastGoalRow) return;
+  const r=forecastGoalRow;
+  // Format with spaces for display
+  const hStr=fmtInt(Math.round(r.housing));
+  const dStr=fmtInt(Math.round(r.endBal));
+  document.getElementById('cr-price').value=hStr;
+  document.getElementById('cr-down').value=dStr;
+  document.getElementById('cr-suggestion').style.display='none';
+  suggestionDismissed=true;
+  calcCredit();
+}
+
+function dismissSuggestion(){
+  suggestionDismissed=true;
+  document.getElementById('cr-suggestion').style.display='none';
 }
 
 // ════ COLLAPSIBLE FB ════
@@ -739,6 +781,10 @@ function calcForecast(){
     if(share>=1&&goalIdx<0) goalIdx=rows.length-1;
     if(goalIdx>=0&&rows.length>=goalIdx+3) break;
   }
+
+  // Save goal row for credit suggestion
+  forecastGoalRow = goalIdx >= 0 ? rows[goalIdx] : null;
+  suggestionDismissed = false;
 
   const tbody=document.getElementById('fc-tbody');
   tbody.innerHTML='';
