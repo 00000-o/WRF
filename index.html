@@ -212,7 +212,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
             </div>
             <div class="cushion-toggle">
               <label class="tgl"><input type="checkbox" id="p-cushion-on" onchange=""><div class="tgl-track"></div></label>
-              <span class="tgl-text">Учитывать в накоплениях</span>
+              <span class="tgl-text">Не учитывать в накоплениях</span>
             </div>
           </div>
         </div>
@@ -389,6 +389,81 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
         <div id="no-ent" style="color:var(--txt3);font-size:13px;font-weight:500;padding:12px 0">Записей пока нет</div>
       </div>
     </div>
+
+    <!-- ══════════ КРЕДИТ ══════════ -->
+    <div class="page" id="page-credit">
+
+      <div class="fb">
+        <div class="fbt" style="margin-bottom:16px">Параметры ипотеки</div>
+        <div class="tile-grid" style="margin-bottom:12px">
+          <div class="fi">
+            <label>Стоимость жилья (₽)</label>
+            <input type="text" id="cr-price" value="10 000 000" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+          </div>
+          <div class="fi">
+            <label>Первоначальный взнос (₽)</label>
+            <input type="text" id="cr-down" value="5 000 000" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+          </div>
+        </div>
+        <div class="tile-grid" style="margin-bottom:12px">
+          <div class="fi">
+            <label>Годовая ставка (%)</label>
+            <input type="text" id="cr-rate" value="12" inputmode="decimal" oninput="fmtThis(this);calcCredit()">
+          </div>
+          <div class="fi">
+            <label>Срок кредита (лет)</label>
+            <input type="text" id="cr-years" value="20" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+          </div>
+        </div>
+        <div class="tile-grid">
+          <div class="fi">
+            <label>Доп. платёж / мес (₽)</label>
+            <input type="text" id="cr-extra" value="0" inputmode="numeric" oninput="fmtThis(this);calcCredit()" placeholder="0">
+            <span class="hint">Сверх обязательного — сокращает срок и переплату</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="cr-results" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="sc hi"><div class="sl">Платёж / мес</div><div class="sv" id="cr-payment">—</div></div>
+          <div class="sc"><div class="sl">Сумма кредита</div><div class="sv" id="cr-loan">—</div></div>
+          <div class="sc"><div class="sl">Переплата</div><div class="sv" id="cr-overpay">—</div></div>
+          <div class="sc"><div class="sl">Итого выплат</div><div class="sv" id="cr-total">—</div></div>
+        </div>
+
+        <div id="cr-early-block" style="display:none;background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--rs);padding:14px;margin-bottom:14px;font-size:13px;line-height:1.6">
+          <div style="font-weight:700;color:var(--red);margin-bottom:6px">Досрочное погашение</div>
+          <div id="cr-early-text" style="color:var(--txt2)"></div>
+        </div>
+
+        <div class="stitle">График погашения</div>
+        <div class="cbox" style="margin-bottom:14px">
+          <div class="cwrap" id="cr-chart-wrap" style="height:240px;cursor:default">
+            <canvas id="cr-chart"></canvas>
+          </div>
+          <div style="display:flex;gap:20px;padding:10px 16px 14px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+              <div style="width:12px;height:12px;border-radius:3px;background:rgba(232,0,28,0.75)"></div>Основной долг
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+              <div style="width:12px;height:12px;border-radius:3px;background:rgba(232,0,28,0.2)"></div>Проценты
+            </div>
+          </div>
+        </div>
+
+        <div class="stitle">По годам</div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>Год</th><th>Платёж / мес</th><th>Основной долг</th><th>Проценты</th><th>Остаток</th>
+            </tr></thead>
+            <tbody id="cr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <nav id="nav">
@@ -399,6 +474,10 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
     <button class="nb" id="nb-forecast" onclick="showPage('forecast')">
       <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       <span>Прогноз</span>
+    </button>
+    <button class="nb" id="nb-credit" onclick="showPage('credit')">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+      <span>Кредит</span>
     </button>
   </nav>
 </div>
@@ -454,11 +533,12 @@ function fShort(n){
 
 // ════ NAV ════
 function showPage(name){
-  ['forecast','tracker'].forEach(p=>{
+  ['forecast','tracker','credit'].forEach(p=>{
     document.getElementById('page-'+p).classList.toggle('active',p===name);
     document.getElementById('nb-'+p).classList.toggle('on',p===name);
   });
   if(name==='tracker') renderChart();
+  if(name==='credit') calcCredit();
 }
 
 // ════ COLLAPSIBLE FB ════
@@ -702,6 +782,14 @@ let entries=JSON.parse(localStorage.getItem('sv_ent')||'[]');
 function save(){ localStorage.setItem('sv_ent',JSON.stringify(entries)); }
 
 // ════ EXPORT / IMPORT ════
+function localDateStr(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+
 function exportCSV(){
   if(!entries.length){ alert('Нет данных для выгрузки'); return; }
   let csv='Дата,Сумма\n';
@@ -718,68 +806,81 @@ function exportCSV(){
       const val=el.type==='checkbox'?el.checked:el.value;
       csv+=id+','+val+'\n';
     });
-    // yield rows
-    if(document.getElementById('p-ytype').value==='flex'){
-      syncYieldFromDOM();
-      csv+='yield_rows,'+JSON.stringify(yrs)+'\n';
-    }
+    // Always save yield_rows regardless of current mode
+    syncYieldFromDOM();
+    csv+='yield_rows,'+JSON.stringify(yrs)+'\n';
   }
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='накопления_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download='накопления_'+localDateStr()+'.csv';
   a.click();
 }
+
 function importCSV(input){
   const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     const text=e.target.result;
     const parts2=text.split('\n#SCENARIO\n');
-    const dataLines=parts2[0].split('\n').filter(l=>l.trim());
+    const dataLines=parts2[0].split('\n').filter(l=>l.trim()&&!l.startsWith('Дата'));
     const imported=[];
     dataLines.forEach(l=>{
-      const parts=l.split(',');
-      if(parts.length<2) return;
-      const date=parts[0].trim();
-      const amount=parseFloat(parts[1].replace(/\s/g,''));
+      const ci=l.indexOf(',');
+      if(ci<0) return;
+      const date=l.slice(0,ci).trim();
+      const amount=parseFloat(l.slice(ci+1).replace(/\s/g,''));
       if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&!isNaN(amount)) imported.push({date,amount});
     });
     let scen=null;
     if(parts2[1]){
       scen=[];
       parts2[1].split('\n').filter(l=>l.trim()).forEach(l=>{
-        const idx=l.indexOf(',');
-        if(idx<0) return;
-        scen.push([l.slice(0,idx).trim(), l.slice(idx+1).trim()]);
+        const ci=l.indexOf(',');
+        if(ci<0) return;
+        const id=l.slice(0,ci).trim();
+        const val=l.slice(ci+1).trim(); // everything after first comma — handles JSON with commas
+        scen.push([id,val]);
       });
     }
-    if(!imported.length){ alert('Не удалось прочитать файл'); return; }
-    entries=[...entries,...imported];
-    const map={};
-    entries.forEach(e=>map[e.date]=e.amount);
-    entries=Object.keys(map).sort().map(d=>({date:d,amount:map[d]}));
-    save(); renderTracker();
-    // restore scenario if present
-    let msg='Загружено записей: '+imported.length;
-    if(scen){
+    if(!imported.length&&!scen){ alert('Не удалось прочитать файл'); return; }
+    if(imported.length){
+      entries=[...entries,...imported];
+      const map={};
+      entries.forEach(e=>map[e.date]=e.amount);
+      entries=Object.keys(map).sort().map(d=>({date:d,amount:map[d]}));
+      save(); renderTracker();
+    }
+    let msg=imported.length?'Загружено записей: '+imported.length:'';
+    if(scen&&scen.length){
+      let restoredYrs=false;
       scen.forEach(([id,val])=>{
+        if(id==='yield_rows'){
+          try{
+            const parsed=JSON.parse(val);
+            if(Array.isArray(parsed)&&parsed.length){ yrs=parsed; restoredYrs=true; }
+          }catch(ex){ console.error('yield_rows parse error',ex,val); }
+          return;
+        }
         const el=document.getElementById(id);
         if(!el) return;
-        if(id==='yield_rows'){try{yrs=JSON.parse(val);}catch(e){} return;}
         if(el.type==='checkbox') el.checked=(val==='true');
         else el.value=val;
       });
-      onDepModeChange(); onPriceModeChange(); onYieldTypeChange();
-      msg+='\nСценарий прогноза восстановлен.';
+      onDepModeChange();
+      onPriceModeChange();
+      onYieldTypeChange();
+      if(restoredYrs) renderYR();
+      calcSqmPrice();
+      msg+=(msg?'\n':'')+'Сценарий прогноза восстановлен.';
     }
-    alert(msg);
+    if(msg) alert(msg);
   };
   reader.readAsText(file,'utf-8');
   input.value='';
 }
 
 // ════ ADD / DELETE ════
-document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('e-date').value=localDateStr();
 
 function addEntry(){
   const d=document.getElementById('e-date').value;
@@ -813,7 +914,12 @@ function renderTracker(){
   document.getElementById('v-cnt').textContent=entries.length;
   if(entries.length){
     const last=entries[entries.length-1];
-    document.getElementById('v-last').textContent=fShort(last.amount);
+    const lastAmt=last.amount;
+    let lastStr;
+    if(Math.abs(lastAmt)>=1e6) lastStr=(lastAmt/1e6).toFixed(2).replace('.',',')+' млн';
+    else if(Math.abs(lastAmt)>=1e3) lastStr=(lastAmt/1e3).toFixed(1).replace('.',',')+' тыс';
+    else lastStr=fmtInt(lastAmt);
+    document.getElementById('v-last').textContent=lastStr;
     // Year-change: interpolate value at Jan 1 of last entry's year
     const el=document.getElementById('v-delta');
     const lastDate=new Date(last.date+'T00:00:00');
@@ -1089,9 +1195,156 @@ cwrap.addEventListener('touchmove',e=>{ e.preventDefault(); if(cPts.length) upda
 cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
 cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
+// ════ CREDIT CALC ════
+function calcCredit(){
+  const price=rawNum(document.getElementById('cr-price').value);
+  const down=rawNum(document.getElementById('cr-down').value);
+  const rateY=rawNum(document.getElementById('cr-rate').value);
+  const years=rawNum(document.getElementById('cr-years').value);
+  const extra=rawNum(document.getElementById('cr-extra').value)||0;
+
+  const S=Math.max(0,price-down);
+  const n=Math.round(years*12);
+  const i=rateY/100/12;
+
+  if(S<=0||n<=0||i<0){
+    document.getElementById('cr-results').style.display='none';
+    return;
+  }
+
+  // Annuity payment
+  let A;
+  if(i===0){ A=S/n; }
+  else { A=S*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1); }
+
+  document.getElementById('cr-results').style.display='';
+  document.getElementById('cr-payment').textContent=fmtInt(Math.round(A))+' ₽';
+  document.getElementById('cr-loan').textContent=fShort(S);
+
+  // Build amortization schedule (with optional extra payment)
+  let balance=S;
+  let totalPaid=0;
+  let totalInterest=0;
+  let month=0;
+  const yearRows=[];
+  let curYear={yr:new Date().getFullYear(),principal:0,interest:0,payment:A+extra};
+  let actualMonths=0;
+
+  while(balance>0.01 && month<n*2){
+    month++;
+    const intPart=balance*i;
+    let princPart=A-intPart;
+    if(princPart<0) princPart=0;
+    let extraPay=extra;
+    if(princPart+extraPay>balance) extraPay=Math.max(0,balance-princPart);
+    const paid=princPart+extraPay;
+    balance-=paid;
+    if(balance<0.01) balance=0;
+    totalPaid+=A+extraPay;
+    totalInterest+=intPart;
+    curYear.principal+=paid;
+    curYear.interest+=intPart;
+    if(month%12===0||balance<0.01){
+      curYear.balance=balance;
+      curYear.payment=A+extra;
+      yearRows.push({...curYear});
+      curYear={yr:curYear.yr+1,principal:0,interest:0,payment:A+extra};
+    }
+    actualMonths=month;
+  }
+
+  const overpay=totalInterest;
+  document.getElementById('cr-overpay').textContent=fShort(Math.round(overpay));
+  document.getElementById('cr-total').textContent=fShort(Math.round(S+overpay));
+
+  // Early payment block
+  const earlyBlock=document.getElementById('cr-early-block');
+  if(extra>0){
+    earlyBlock.style.display='';
+    const savedMonths=n-actualMonths;
+    const savedInt=i===0?0:(S*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1))*n - (S+totalInterest);
+    const yrs2=Math.floor(savedMonths/12);
+    const mos=savedMonths%12;
+    let timeStr='';
+    if(yrs2>0) timeStr+=yrs2+' г. ';
+    if(mos>0) timeStr+=mos+' мес.';
+    if(!timeStr) timeStr='срок не изменился';
+    document.getElementById('cr-early-text').innerHTML=
+      'Срок сокращается на <b>'+timeStr+'</b> ('+actualMonths+' мес. вместо '+n+' мес.)<br>'+
+      'Экономия на процентах: <b>'+fmtInt(Math.round(Math.max(0,A*n-(S+totalInterest))))+'</b> ₽';
+  } else {
+    earlyBlock.style.display='none';
+  }
+
+  // ── Chart (stacked bar: principal + interest per year) ──
+  const wrap=document.getElementById('cr-chart-wrap');
+  const canvas=document.getElementById('cr-chart');
+  const W=wrap.offsetWidth||340;
+  const H=240;
+  const PR=window.devicePixelRatio||1;
+  canvas.width=W*PR; canvas.height=H*PR;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(PR,PR);
+  ctx.clearRect(0,0,W,H);
+
+  const maxVal=Math.max(...yearRows.map(r=>r.principal+r.interest));
+  const pad={t:12,r:14,b:28,l:56};
+  const gw=W-pad.l-pad.r;
+  const gh=H-pad.t-pad.b;
+
+  // Y axis
+  const ySteps2=niceSteps(0,maxVal,4);
+  const yMax2=ySteps2[ySteps2.length-1]||1;
+  ctx.font='500 10px Manrope,-apple-system,sans-serif';
+  ctx.textAlign='right';
+  ySteps2.forEach(v=>{
+    const y=pad.t+gh-(v/yMax2)*gh;
+    ctx.strokeStyle='rgba(0,0,0,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gw,y); ctx.stroke();
+    ctx.fillStyle='#9A9A9A'; ctx.fillText(fAxis(v),pad.l-5,y+3.5);
+  });
+
+  // Bars
+  const barW=Math.max(4,Math.min(32,gw/yearRows.length*0.7));
+  const gap=gw/yearRows.length;
+  yearRows.forEach((r,idx)=>{
+    const x=pad.l+idx*gap+gap/2-barW/2;
+    const totalH=(r.principal+r.interest)/yMax2*gh;
+    const princH=r.principal/yMax2*gh;
+    const intH=r.interest/yMax2*gh;
+    const yBase=pad.t+gh;
+    // interest (bottom, lighter)
+    ctx.fillStyle='rgba(232,0,28,0.2)';
+    ctx.fillRect(x,yBase-intH,barW,intH);
+    // principal (top, darker)
+    ctx.fillStyle='rgba(232,0,28,0.75)';
+    ctx.fillRect(x,yBase-intH-princH,barW,princH);
+    // year label
+    if(idx%Math.ceil(yearRows.length/8)===0||idx===yearRows.length-1){
+      ctx.fillStyle='#ADADAD'; ctx.textAlign='center';
+      ctx.fillText(r.yr,x+barW/2,H-6);
+    }
+  });
+
+  // Year table
+  const tbody=document.getElementById('cr-tbody');
+  tbody.innerHTML='';
+  yearRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.yr+'</td>'+
+      '<td>'+fmtInt(Math.round(r.payment))+' ₽</td>'+
+      '<td>'+fmtInt(Math.round(r.principal))+' ₽</td>'+
+      '<td>'+fmtInt(Math.round(r.interest))+' ₽</td>'+
+      '<td>'+fmtInt(Math.round(r.balance))+' ₽</td>';
+    tbody.appendChild(tr);
+  });
+}
+
 // ════ INIT ════
 renderTracker();
 calcSqmPrice();
+calcCredit();
 window.addEventListener('resize',()=>{
   if(document.getElementById('page-tracker').classList.contains('active')) renderChart();
 });
