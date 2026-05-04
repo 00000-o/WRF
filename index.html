@@ -232,7 +232,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
               <label>Тип цели</label>
               <select id="p-goal-type" onchange="onGoalTypeChange()">
                 <option value="apartment">Жильё</option>
-                <option value="consumer">Иная цель</option>
+                <option value="consumer">Потребительский</option>
               </select>
             </div>
           </div>
@@ -481,10 +481,25 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
 
       <div id="cr-results" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div class="sc hi"><div class="sl">Платёж / мес</div><div class="sv" id="cr-payment">—</div></div>
-          <div class="sc"><div class="sl">Сумма кредита</div><div class="sv" id="cr-loan">—</div></div>
-          <div class="sc"><div class="sl">Переплата</div><div class="sv" id="cr-overpay">—</div></div>
-          <div class="sc"><div class="sl">Итого выплат</div><div class="sv" id="cr-total">—</div></div>
+          <div class="sc hi">
+            <div class="sl">Платёж / мес</div>
+            <div class="sv" id="cr-payment">—</div>
+            <div id="cr-payment-real" style="font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:4px;display:none"></div>
+          </div>
+          <div class="sc">
+            <div class="sl">Сумма кредита</div>
+            <div class="sv" id="cr-loan">—</div>
+          </div>
+          <div class="sc">
+            <div class="sl">Переплата</div>
+            <div class="sv" id="cr-overpay">—</div>
+            <div id="cr-overpay-real" style="font-size:10.5px;font-weight:600;color:var(--txt3);margin-top:4px;display:none"></div>
+          </div>
+          <div class="sc">
+            <div class="sl">Итого выплат</div>
+            <div class="sv" id="cr-total">—</div>
+            <div id="cr-total-real" style="font-size:10.5px;font-weight:600;color:var(--txt3);margin-top:4px;display:none"></div>
+          </div>
         </div>
 
         <div id="cr-early-block" style="display:none;background:var(--blue-l);border:1px solid var(--blue-brd);border-radius:var(--rs);padding:14px;margin-bottom:14px;font-size:13px;line-height:1.6">
@@ -507,11 +522,17 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
         </div>
 
-        <div class="stitle">По годам</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div class="stitle" style="margin-bottom:0">По годам</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="cr-infl-toggle" onchange="renderCrTable()"><div class="tgl-track"></div></label>
+            <span style="font-size:12px;font-weight:600;color:var(--txt2)">Показать с учётом инфляции</span>
+          </div>
+        </div>
         <div class="tscroll">
           <table>
-            <thead><tr>
-              <th>Год</th><th>Платёж / мес</th><th>Основной долг</th><th>Проценты</th><th>Остаток</th>
+            <thead id="cr-thead"><tr>
+              <th>Год</th><th>Платёж / мес</th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th>
             </tr></thead>
             <tbody id="cr-tbody"></tbody>
           </table>
@@ -1314,6 +1335,9 @@ cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) upd
 cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
 // ════ CREDIT CALC ════
+let crYearRows = [];   // stored for table re-render
+let crNominal = {};    // stored nominal summary values
+
 function calcCredit(){
   const price=rawNum(document.getElementById('cr-price').value);
   const down=rawNum(document.getElementById('cr-down').value);
@@ -1322,6 +1346,7 @@ function calcCredit(){
   const termUnit=document.getElementById('cr-term-unit')?document.getElementById('cr-term-unit').value:'years';
   const extra=rawNum(document.getElementById('cr-extra').value)||0;
   const fromGoal=document.getElementById('cr-from-goal')&&document.getElementById('cr-from-goal').checked;
+  const infl=nv('p-infl')/100; // annual inflation rate
 
   // Convert term to months
   let n;
@@ -1335,14 +1360,16 @@ function calcCredit(){
 
   const S=Math.max(0,price-down);
   const i=rateY/100/12;
+  const inflMonthly=Math.pow(1+infl,1/12)-1;
 
   if(S<=0||n<=0||i<0){
     document.getElementById('cr-results').style.display='none';
     document.getElementById('cr-loan-info').style.display='none';
+    crYearRows=[];
     return;
   }
 
-  // Annuity payment
+  // Annuity payment (nominal, fixed)
   let A;
   if(i===0){ A=S/n; }
   else { A=S*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1); }
@@ -1350,67 +1377,155 @@ function calcCredit(){
   document.getElementById('cr-results').style.display='';
   document.getElementById('cr-payment').textContent=fmtInt(Math.round(A))+' ₽';
   document.getElementById('cr-loan').textContent=fmtInt(Math.round(S))+' ₽';
-  // Always show full loan amount info block
   const li=document.getElementById('cr-loan-info');
   li.textContent='Сумма кредита: '+fmtInt(Math.round(S))+' ₽';
   li.style.display='';
 
-  // Build amortization schedule (with optional extra payment)
+  // ── Amortization schedule: nominal + real (deflated) tracking ──
+  // Pункт 4: extra payment indexed to inflation each year
   let balance=S;
-  let totalPaid=0;
-  let totalInterest=0;
+  let totalPaid=0, totalInterest=0;
+  let realTotalPaid=0, realTotalInterest=0;
   let month=0;
-  const yearRows=[];
-  let curYear={yr:startYear,principal:0,interest:0,payment:A+extra};
+  crYearRows=[];
+  let curYearIdx=0; // years elapsed from start
+  let curYear={
+    yr:startYear, principal:0, interest:0, payment:0,
+    realPayment:0, realPrincipal:0, realInterest:0, realBalance:0
+  };
   let actualMonths=0;
+  let cumulInflFactor=1; // cumulative deflation factor (divides to get real value)
 
   while(balance>0.01 && month<n*2){
     month++;
+    // Inflation factor for this month (cumulative from start)
+    cumulInflFactor=Math.pow(1+inflMonthly, month);
+    const deflate = v => v / cumulInflFactor; // nominal → real (today's ₽)
+
     const intPart=balance*i;
     let princPart=A-intPart;
     if(princPart<0) princPart=0;
-    let extraPay=extra;
+
+    // Indexed extra payment: grows with inflation each year
+    const yearNum=Math.floor((month-1)/12);
+    const indexedExtra=extra*Math.pow(1+infl, yearNum);
+    let extraPay=extra>0?indexedExtra:0;
     if(princPart+extraPay>balance) extraPay=Math.max(0,balance-princPart);
+
     const paid=princPart+extraPay;
+    const monthPayment=A+extraPay;
     balance-=paid;
     if(balance<0.01) balance=0;
-    totalPaid+=A+extraPay;
+
+    totalPaid+=monthPayment;
     totalInterest+=intPart;
+    realTotalPaid+=deflate(monthPayment);
+    realTotalInterest+=deflate(intPart);
+
     curYear.principal+=paid;
     curYear.interest+=intPart;
+    curYear.payment=monthPayment; // last month of year payment (for display)
+    curYear.realPayment+=deflate(monthPayment);
+    curYear.realPrincipal+=deflate(paid);
+    curYear.realInterest+=deflate(intPart);
+
     if(month%12===0||balance<0.01){
       curYear.balance=balance;
-      curYear.payment=A+extra;
-      yearRows.push({...curYear});
-      curYear={yr:curYear.yr+1,principal:0,interest:0,payment:A+extra};
+      curYear.realBalance=deflate(balance);
+      crYearRows.push({...curYear});
+      curYearIdx++;
+      curYear={
+        yr:startYear+curYearIdx, principal:0, interest:0, payment:0,
+        realPayment:0, realPrincipal:0, realInterest:0, realBalance:0
+      };
     }
     actualMonths=month;
   }
 
   const overpay=totalInterest;
+  const realOverpay=realTotalInterest;
+  const realTotal=realTotalPaid;
+
+  crNominal={A, S, overpay, total:S+overpay, realOverpay, realTotal, n, actualMonths, infl};
+
   document.getElementById('cr-overpay').textContent=fmtInt(Math.round(overpay))+' ₽';
   document.getElementById('cr-total').textContent=fmtInt(Math.round(S+overpay))+' ₽';
+
+  // ── Real-price sub-labels (п.1 & п.2) ──
+  const showReal = infl > 0;
+  const setReal = (id, val, prefix) => {
+    const el=document.getElementById(id);
+    el.style.display=showReal?'':'none';
+    if(showReal) el.textContent=prefix+fmtInt(Math.round(val))+' ₽ в ценах сегодня';
+  };
+  // Payment: first month is already today's price; show last month real value
+  const lastMonthReal = A / Math.pow(1+inflMonthly, actualMonths);
+  setReal('cr-payment-real', A, '≈ '); // first payment = today (no change needed)
+  document.getElementById('cr-payment-real').textContent = showReal
+    ? 'Посл. платёж ≈ '+fmtInt(Math.round(lastMonthReal))+' ₽ в ценах сегодня'
+    : '';
+  document.getElementById('cr-payment-real').style.display = showReal ? '' : 'none';
+  setReal('cr-overpay-real', realOverpay, '≈ ');
+  setReal('cr-total-real', realTotal, '≈ ');
 
   // Early payment block
   const earlyBlock=document.getElementById('cr-early-block');
   if(extra>0){
     earlyBlock.style.display='';
     const savedMonths=n-actualMonths;
-    const savedInt=i===0?0:(S*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1))*n - (S+totalInterest);
     const yrs2=Math.floor(savedMonths/12);
     const mos=savedMonths%12;
     let timeStr='';
     if(yrs2>0) timeStr+=yrs2+' г. ';
     if(mos>0) timeStr+=mos+' мес.';
     if(!timeStr) timeStr='срок не изменился';
+    const savedInt=Math.max(0,A*n-(S+totalInterest));
     document.getElementById('cr-early-text').innerHTML=
       'Срок сокращается на <b>'+timeStr+'</b> ('+actualMonths+' мес. вместо '+n+' мес.)<br>'+
-      'Экономия на процентах: <b>'+fmtInt(Math.round(Math.max(0,A*n-(S+totalInterest))))+'</b> ₽';
+      'Доп. взнос индексируется на инфляцию '+Math.round(infl*100)+'% / год<br>'+
+      'Экономия на процентах: <b>'+fmtInt(Math.round(savedInt))+'</b> ₽';
   } else {
     earlyBlock.style.display='none';
   }
 
-  // ── Chart (stacked bar: principal + interest per year) ──
+  // Draw chart & table
+  drawCrChart();
+  renderCrTable();
+}
+
+function renderCrTable(){
+  const useInfl=document.getElementById('cr-infl-toggle')&&document.getElementById('cr-infl-toggle').checked;
+  const thead=document.getElementById('cr-thead');
+  const tbody=document.getElementById('cr-tbody');
+
+  if(useInfl){
+    thead.innerHTML='<tr><th>Год</th><th>Платёж / мес<br><span style="font-weight:400;font-size:9px;text-transform:none">в ценах сегодня</span></th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th></tr>';
+    tbody.innerHTML='';
+    crYearRows.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+r.yr+'</td>'+
+        '<td>'+fmtInt(Math.round(r.realPayment/12))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.realPrincipal))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.realInterest))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.realBalance))+' ₽</td>';
+      tbody.appendChild(tr);
+    });
+  } else {
+    thead.innerHTML='<tr><th>Год</th><th>Платёж / мес</th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th></tr>';
+    tbody.innerHTML='';
+    crYearRows.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+r.yr+'</td>'+
+        '<td>'+fmtInt(Math.round(r.payment))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.principal))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.interest))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.balance))+' ₽</td>';
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function drawCrChart(){
   const wrap=document.getElementById('cr-chart-wrap');
   const canvas=document.getElementById('cr-chart');
   const W=wrap.offsetWidth||340;
@@ -1422,12 +1537,12 @@ function calcCredit(){
   ctx.scale(PR,PR);
   ctx.clearRect(0,0,W,H);
 
-  const maxVal=Math.max(...yearRows.map(r=>r.principal+r.interest));
+  if(!crYearRows.length) return;
+  const maxVal=Math.max(...crYearRows.map(r=>r.principal+r.interest));
   const pad={t:12,r:14,b:28,l:56};
   const gw=W-pad.l-pad.r;
   const gh=H-pad.t-pad.b;
 
-  // Y axis
   const ySteps2=niceSteps(0,maxVal,4);
   const yMax2=ySteps2[ySteps2.length-1]||1;
   ctx.font='500 10px Manrope,-apple-system,sans-serif';
@@ -1439,39 +1554,21 @@ function calcCredit(){
     ctx.fillStyle='#9A9A9A'; ctx.fillText(fAxis(v),pad.l-5,y+3.5);
   });
 
-  // Bars
-  const barW=Math.max(4,Math.min(32,gw/yearRows.length*0.7));
-  const gap=gw/yearRows.length;
-  yearRows.forEach((r,idx)=>{
+  const barW=Math.max(4,Math.min(32,gw/crYearRows.length*0.7));
+  const gap=gw/crYearRows.length;
+  crYearRows.forEach((r,idx)=>{
     const x=pad.l+idx*gap+gap/2-barW/2;
-    const totalH=(r.principal+r.interest)/yMax2*gh;
     const princH=r.principal/yMax2*gh;
     const intH=r.interest/yMax2*gh;
     const yBase=pad.t+gh;
-    // interest (bottom, lighter)
     ctx.fillStyle='rgba(154,206,235,0.35)';
     ctx.fillRect(x,yBase-intH,barW,intH);
-    // principal (top, darker)
     ctx.fillStyle='rgba(90,157,191,0.85)';
     ctx.fillRect(x,yBase-intH-princH,barW,princH);
-    // year label
-    if(idx%Math.ceil(yearRows.length/8)===0||idx===yearRows.length-1){
+    if(idx%Math.ceil(crYearRows.length/8)===0||idx===crYearRows.length-1){
       ctx.fillStyle='#ADADAD'; ctx.textAlign='center';
       ctx.fillText(r.yr,x+barW/2,H-6);
     }
-  });
-
-  // Year table
-  const tbody=document.getElementById('cr-tbody');
-  tbody.innerHTML='';
-  yearRows.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+r.yr+'</td>'+
-      '<td>'+fmtInt(Math.round(r.payment))+' ₽</td>'+
-      '<td>'+fmtInt(Math.round(r.principal))+' ₽</td>'+
-      '<td>'+fmtInt(Math.round(r.interest))+' ₽</td>'+
-      '<td>'+fmtInt(Math.round(r.balance))+' ₽</td>';
-    tbody.appendChild(tr);
   });
 }
 
