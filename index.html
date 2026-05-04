@@ -406,10 +406,10 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
       </div>
 
       <div class="fb">
-        <div class="fbt" style="margin-bottom:16px">Параметры ипотеки</div>
+        <div class="fbt" style="margin-bottom:16px">Параметры кредита</div>
         <div class="tile-grid" style="margin-bottom:12px">
           <div class="fi">
-            <label>Стоимость жилья (₽)</label>
+            <label>Стоимость цели (₽)</label>
             <input type="text" id="cr-price" value="10 000 000" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
           </div>
           <div class="fi">
@@ -423,8 +423,19 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
             <input type="text" id="cr-rate" value="12" inputmode="decimal" oninput="fmtThis(this);calcCredit()">
           </div>
           <div class="fi">
-            <label>Срок кредита (лет)</label>
-            <input type="text" id="cr-years" value="20" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+            <label>Срок кредита</label>
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <input type="text" id="cr-years" value="20" inputmode="numeric" oninput="fmtThis(this);calcCredit()" style="flex:2;min-width:0">
+              <select id="cr-term-unit" onchange="calcCredit()" style="flex:1;min-width:0;padding:11px 8px;border:1.5px solid var(--brd);border-radius:var(--rs);font-family:inherit;font-size:13px;background:var(--bg);color:var(--txt);outline:none;-webkit-appearance:none">
+                <option value="years">лет</option>
+                <option value="months">мес.</option>
+                <option value="days">дней</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="cr-from-goal" onchange="calcCredit()"><div class="tgl-track"></div></label>
+              <span style="font-size:11.5px;color:var(--txt2);line-height:1.3">Отсчитывать срок от года достижения первого взноса</span>
+            </div>
           </div>
         </div>
         <div class="tile-grid">
