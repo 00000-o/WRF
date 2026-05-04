@@ -1456,13 +1456,13 @@ function calcCredit(){
   const setReal = (id, val, prefix) => {
     const el=document.getElementById(id);
     el.style.display=showReal?'':'none';
-    if(showReal) el.textContent=prefix+fmtInt(Math.round(val))+' ₽ в ценах сегодня';
+    if(showReal) el.textContent=prefix+fmtInt(Math.round(val))+' ₽ в ценах на сегодня';
   };
   // Payment: first month is already today's price; show last month real value
   const lastMonthReal = A / Math.pow(1+inflMonthly, actualMonths);
   setReal('cr-payment-real', A, '≈ '); // first payment = today (no change needed)
   document.getElementById('cr-payment-real').textContent = showReal
-    ? 'Посл. платёж ≈ '+fmtInt(Math.round(lastMonthReal))+' ₽ в ценах сегодня'
+    ? 'Последний платёж ≈ '+fmtInt(Math.round(lastMonthReal))+' ₽ в ценах на сегодня'
     : '';
   document.getElementById('cr-payment-real').style.display = showReal ? '' : 'none';
   setReal('cr-overpay-real', realOverpay, '≈ ');
@@ -1499,7 +1499,7 @@ function renderCrTable(){
   const tbody=document.getElementById('cr-tbody');
 
   if(useInfl){
-    thead.innerHTML='<tr><th>Год</th><th>Платёж / мес<br><span style="font-weight:400;font-size:9px;text-transform:none">в ценах сегодня</span></th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th></tr>';
+    thead.innerHTML='<tr><th>Год</th><th>Платёж / мес<br><span style="font-weight:400;font-size:9px;text-transform:none">в ценах на сегодня</span></th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th></tr>';
     tbody.innerHTML='';
     crYearRows.forEach(r=>{
       const tr=document.createElement('tr');
