@@ -99,8 +99,8 @@ body{font-family:'Manrope',-apple-system,sans-serif;background:#F0F0F0;color:var
 /* table */
 .tscroll{overflow-x:auto;margin:0 -24px;padding:0 24px}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px}
-thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd);position:relative}
-thead th:first-child{text-align:left}
+thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd);position:relative;width:1%}
+thead th:first-child{text-align:left;width:56px}
 tbody td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--brd);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--txt)}
 tbody td:first-child{text-align:left;font-weight:700}
 .ms td{color:var(--red)!important;background:rgba(232,0,28,0.07)}
@@ -444,7 +444,8 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
           <div class="fi">
             <label>Первоначальный взнос (₽)</label>
-            <input type="text" id="cr-down" value="5 000 000" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+            <input type="text" id="cr-down" value="5 000 000" inputmode="numeric" oninput="fmtThis(this);crDownEnable();calcCredit()">
+            <button onclick="crDownZero()" style="margin-top:5px;padding:5px 10px;border:1.5px solid var(--brd);border-radius:var(--rs);background:var(--bg);font-family:inherit;font-size:11.5px;font-weight:600;color:var(--txt2);cursor:pointer;text-align:left">Без первоначального взноса</button>
           </div>
         </div>
         <div class="tile-grid" style="margin-bottom:12px">
@@ -1339,6 +1340,19 @@ cwrap.addEventListener('touchmove',e=>{ e.preventDefault(); if(cPts.length) upda
 cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
 cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
+function crDownZero(){
+  const inp=document.getElementById('cr-down');
+  inp.value='0';
+  inp.disabled=true;
+  inp.style.opacity='0.4';
+  calcCredit();
+}
+function crDownEnable(){
+  const inp=document.getElementById('cr-down');
+  inp.disabled=false;
+  inp.style.opacity='1';
+}
+
 // ════ CREDIT CALC ════
 let crYearRows = [];
 let crNominal = {};
@@ -1410,7 +1424,7 @@ function calcCredit(){
   crYearRows=[];
   let curYearIdx=0;
   let curYear={
-    yr:startYear, principal:0, interest:0, payment:0,
+    yr:startYear, principal:0, interest:0, annuity:0, payment:0,
     firstMonthReal:0, lastMonthReal:0,
     realPrincipal:0, realInterest:0, realBalance:0,
     firstMonth:0  // absolute month number of first payment in this year
@@ -1440,7 +1454,8 @@ function calcCredit(){
     realTotalInterest+=rInt;
     curYear.principal+=paid;
     curYear.interest+=intPart;
-    curYear.payment=monthPayment;
+    curYear.annuity=A;          // fixed annuity — same every month, used in nominal table
+    curYear.payment=monthPayment; // actual payment incl. indexed extra (for reference)
     // Track first and last real payment of this year
     if(curYear.firstMonthReal===0) curYear.firstMonthReal=rPay;
     curYear.lastMonthReal=rPay;
@@ -1454,7 +1469,7 @@ function calcCredit(){
       curYearIdx++;
       yearFirstMonth=month+1;
       curYear={
-        yr:startYear+curYearIdx, principal:0, interest:0, payment:0,
+        yr:startYear+curYearIdx, principal:0, interest:0, annuity:0, payment:0,
         firstMonthReal:0, lastMonthReal:0,
         realPrincipal:0, realInterest:0, realBalance:0,
         firstMonth:yearFirstMonth
