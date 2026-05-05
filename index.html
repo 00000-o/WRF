@@ -484,10 +484,9 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
 
       <div id="cr-results" style="display:none">
         <!-- Main metric: payment -->
-        <div style="background:var(--red);border-radius:var(--r);padding:20px;margin-bottom:10px;text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:6px">Платёж / мес</div>
-          <div style="font-size:32px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:4px" id="cr-payment">—</div>
-          <div id="cr-payment-real" style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);display:none"></div>
+        <div style="background:var(--red);border-radius:var(--r);padding:14px 20px;margin-bottom:10px;text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:4px">Платёж / мес</div>
+          <div style="font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px" id="cr-payment">—</div>
         </div>
 
         <!-- Secondary metrics grid -->
@@ -1412,8 +1411,11 @@ function calcCredit(){
   let curYearIdx=0;
   let curYear={
     yr:startYear, principal:0, interest:0, payment:0,
-    realPayment:0, realPrincipal:0, realInterest:0, realBalance:0
+    firstMonthReal:0, lastMonthReal:0,
+    realPrincipal:0, realInterest:0, realBalance:0,
+    firstMonth:0  // absolute month number of first payment in this year
   };
+  let yearFirstMonth=1;
   let actualMonths=0;
 
   while(balance>0.01 && month<n*2){
@@ -1421,7 +1423,6 @@ function calcCredit(){
     const intPart=balance*i;
     let princPart=A-intPart;
     if(princPart<0) princPart=0;
-    // Indexed extra payment: grows with inflation each year
     const yearNum=Math.floor((month-1)/12);
     const indexedExtra=extra*Math.pow(1+infl, yearNum);
     let extraPay=extra>0?indexedExtra:0;
@@ -1440,7 +1441,9 @@ function calcCredit(){
     curYear.principal+=paid;
     curYear.interest+=intPart;
     curYear.payment=monthPayment;
-    curYear.realPayment+=rPay;
+    // Track first and last real payment of this year
+    if(curYear.firstMonthReal===0) curYear.firstMonthReal=rPay;
+    curYear.lastMonthReal=rPay;
     curYear.realPrincipal+=rPaid;
     curYear.realInterest+=rInt;
 
@@ -1449,9 +1452,12 @@ function calcCredit(){
       curYear.realBalance=deflate(balance, month);
       crYearRows.push({...curYear});
       curYearIdx++;
+      yearFirstMonth=month+1;
       curYear={
         yr:startYear+curYearIdx, principal:0, interest:0, payment:0,
-        realPayment:0, realPrincipal:0, realInterest:0, realBalance:0
+        firstMonthReal:0, lastMonthReal:0,
+        realPrincipal:0, realInterest:0, realBalance:0,
+        firstMonth:yearFirstMonth
       };
     }
     actualMonths=month;
@@ -1470,18 +1476,6 @@ function calcCredit(){
     el.style.display=showReal?'':'none';
     if(showReal) el.textContent=label+fmtInt(Math.round(val))+' ₽ в ценах сегодня';
   };
-  // Payment sub-label: show first and last payment in today's ₽
-  const payRealEl=document.getElementById('cr-payment-real');
-  payRealEl.style.display=showReal?'':'none';
-  if(showReal){
-    if(yearsToStart>0){
-      payRealEl.textContent=
-        '1-й: ≈ '+fmtInt(Math.round(firstPayReal))+' ₽  ·  '
-        +'посл.: ≈ '+fmtInt(Math.round(lastPayReal))+' ₽  в ценах сегодня';
-    } else {
-      payRealEl.textContent='Посл. платёж ≈ '+fmtInt(Math.round(lastPayReal))+' ₽ в ценах сегодня';
-    }
-  }
   setReal('cr-overpay-real', realTotalInterest, '≈ ');
   setReal('cr-total-real', realTotalPaid, '≈ ');
 
@@ -1520,7 +1514,7 @@ function renderCrTable(){
     crYearRows.forEach(r=>{
       const tr=document.createElement('tr');
       tr.innerHTML='<td>'+r.yr+'</td>'+
-        '<td>'+fmtInt(Math.round(r.realPayment/12))+' ₽</td>'+
+        '<td>'+fmtInt(Math.round(r.firstMonthReal))+' ₽</td>'+
         '<td>'+fmtInt(Math.round(r.realPrincipal))+' ₽</td>'+
         '<td>'+fmtInt(Math.round(r.realInterest))+' ₽</td>'+
         '<td>'+fmtInt(Math.round(r.realBalance))+' ₽</td>';
