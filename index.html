@@ -168,13 +168,34 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
     <!-- ══════════ ПРОГНОЗ ══════════ -->
     <div class="page" id="page-forecast">
 
-      <!-- Инфляция -->
-      <div class="fb" style="margin-bottom:14px">
-        <div class="tile-grid">
-          <div class="fi">
-            <label>Учёт прогнозной инфляции (%)</label>
-            <input type="text" id="p-infl" value="7" inputmode="decimal" oninput="fmtThis(this)">
-            <span class="hint">Вычитается из доходности и роста цен на жильё для расчёта реальных ставок</span>
+      <!-- Инфляция (collapsible) -->
+      <div class="fb" id="fb-infl">
+        <div class="fb-head open" onclick="toggleFB('infl')">
+          <span class="fbt">Учёт прогнозной инфляции</span>
+          <span class="fb-arrow open" id="arr-infl">▾</span>
+        </div>
+        <div class="fb-body open" id="body-infl">
+          <div class="tile-grid" style="margin-bottom:10px">
+            <div class="fi">
+              <label>Тип</label>
+              <select id="p-infl-type" onchange="onInflTypeChange()">
+                <option value="fixed">Фиксированная — одинаковый % на все годы</option>
+                <option value="flex">Гибкая — разные % по годам</option>
+              </select>
+            </div>
+          </div>
+          <div id="infl-fixed">
+            <div class="tile-grid">
+              <div class="fi">
+                <label>Инфляция (%)</label>
+                <input type="text" id="p-infl" value="7" inputmode="decimal" oninput="fmtThis(this)">
+                <span class="hint">Вычитается из доходности и роста цен для расчёта реальных ставок</span>
+              </div>
+            </div>
+          </div>
+          <div id="infl-flex" style="display:none">
+            <div class="yr-grid" id="infl-yr-grid"></div>
+            <button class="btn-yr" onclick="addInflYR()">+ год</button>
           </div>
         </div>
       </div>
@@ -308,61 +329,68 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
         </div>
       </div>
 
-      <!-- Доходность -->
-      <div class="fb">
-        <div class="fbt" style="margin-bottom:14px">Средняя доходность активов</div>
-        <div class="tile-grid" style="margin-bottom:14px">
-          <div class="fi">
-            <label>Тип</label>
-            <select id="p-ytype" onchange="onYieldTypeChange()">
-              <option value="fixed">Фиксированная — одинаковый % на все годы</option>
-              <option value="flex">Гибкая — разные % по годам</option>
-            </select>
-          </div>
+      <!-- Доходность (collapsible) -->
+      <div class="fb" id="fb-yield">
+        <div class="fb-head open" onclick="toggleFB('yield')">
+          <span class="fbt">Средняя доходность активов</span>
+          <span class="fb-arrow open" id="arr-yield">▾</span>
         </div>
-        <div id="yf-fixed">
-          <div class="tile-grid">
+        <div class="fb-body open" id="body-yield">
+          <div class="tile-grid" style="margin-bottom:14px">
             <div class="fi">
-              <label>Доходность (%)</label>
-              <input type="text" id="p-yfixed" value="10" inputmode="decimal" oninput="fmtThis(this)">
+              <label>Тип</label>
+              <select id="p-ytype" onchange="onYieldTypeChange()">
+                <option value="fixed">Фиксированная — одинаковый % на все годы</option>
+                <option value="flex">Гибкая — разные % по годам</option>
+              </select>
             </div>
           </div>
-        </div>
-        <div id="yf-flex" style="display:none">
-          <div class="yr-grid" id="yr-grid"></div>
-          <button class="btn-yr" onclick="addYR()">+ год</button>
+          <div id="yf-fixed">
+            <div class="tile-grid" style="margin-bottom:14px">
+              <div class="fi">
+                <label>Доходность (%)</label>
+                <input type="text" id="p-yfixed" value="10" inputmode="decimal" oninput="fmtThis(this)">
+              </div>
+            </div>
+          </div>
+          <div id="yf-flex" style="display:none;margin-bottom:14px">
+            <div class="yr-grid" id="yr-grid"></div>
+            <button class="btn-yr" onclick="addYR()">+ год</button>
+          </div>
+          <!-- Капитализация -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="p-compound" onchange="onCompoundChange()"><div class="tgl-track"></div></label>
+            <span style="font-size:13px;font-weight:500;color:var(--txt)">Начисление процентов с учётом капитализации</span>
+          </div>
+          <div id="compound-period" style="display:none">
+            <div class="tile-grid">
+              <div class="fi">
+                <label>Периодичность капитализации</label>
+                <select id="p-compound-n">
+                  <option value="12">Ежемесячно</option>
+                  <option value="4">Раз в квартал</option>
+                  <option value="2">Раз в полгода</option>
+                  <option value="1">Раз в год</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <button class="btn-calc" onclick="calcForecast()">Рассчитать прогноз</button>
 
       <div id="fc-result" style="display:none;margin-top:28px">
-        <div class="stitle">Прогноз по годам</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div class="stitle" style="margin-bottom:0">Прогноз</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="fc-monthly-toggle" onchange="renderFcTable()"><div class="tgl-track"></div></label>
+            <span style="font-size:12px;font-weight:600;color:var(--txt2)">По месяцам</span>
+          </div>
+        </div>
         <div class="tscroll">
-          <table>
-            <thead><tr>
-              <th>Год</th>
-              <th>Начало года</th>
-              <th>Взносы</th>
-              <th>% Доход</th>
-              <th>
-                <div class="col-help">
-                  Налог
-                  <button class="help-btn" onclick="toggleHelp(event)">ⓘ</button>
-                  <div class="help-popup" id="tax-help">
-                    <b>Налог на доход по вкладу.</b><br>
-                    Ключевая ставка ≈ (инфляция + доходность) / 2.<br>
-                    Необлагаемый минимум = 1 000 000 ₽ × ключевую ставку.<br>
-                    Чтобы рассчитать налог, нужно из общего дохода по депозитам за год вычесть необлагаемый минимум, а затем умножить получившуюся сумму на ставку НДФЛ.<br>
-                    Если доход не превышает необлагаемый минимум, ставится 0.
-                  </div>
-                </div>
-              </th>
-              <th>Конец года</th>
-              <th>Требуемый взнос</th>
-              <th>Стоимость цели</th>
-              <th>Доля</th>
-            </tr></thead>
+          <table id="fc-table">
+            <thead id="fc-thead"></thead>
             <tbody id="fc-tbody"></tbody>
           </table>
         </div>
@@ -444,8 +472,11 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
           <div class="fi">
             <label>Первоначальный взнос (₽)</label>
-            <input type="text" id="cr-down" value="5 000 000" inputmode="numeric" oninput="fmtThis(this);crDownEnable();calcCredit()">
-            <button onclick="crDownZero()" style="margin-top:5px;padding:5px 10px;border:1.5px solid var(--brd);border-radius:var(--rs);background:var(--bg);font-family:inherit;font-size:11.5px;font-weight:600;color:var(--txt2);cursor:pointer;text-align:left">Без первоначального взноса</button>
+            <input type="text" id="cr-down" value="5 000 000" inputmode="numeric" oninput="fmtThis(this);calcCredit()">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="cr-no-down" onchange="onNoDownToggle()"><div class="tgl-track"></div></label>
+              <span style="font-size:12px;font-weight:500;color:var(--txt2)">Без первоначального взноса</span>
+            </div>
           </div>
         </div>
         <div class="tile-grid" style="margin-bottom:12px">
@@ -780,7 +811,7 @@ function toggleHelp(e){
 document.addEventListener('click',()=>document.getElementById('tax-help').classList.remove('open'));
 
 // ════ FORECAST CALC ════
-function getRate(yr,type,fixed,flexRates,infl){
+function getRate(yr,type,fixed,flexRates,inflPct){
   let pct;
   if(type==='fixed') pct=fixed;
   else{
@@ -791,7 +822,25 @@ function getRate(yr,type,fixed,flexRates,infl){
     else if(yr<sorted[0].yr) pct=sorted[0].pct;
     else pct=sorted[sorted.length-1].pct;
   }
-  return Math.max(0,(pct-infl))/100;
+  return Math.max(0,(pct-inflPct))/100;
+}
+
+// ════ FORECAST TABLE STORE ════
+let fcRows=[];
+let fcMonthRows=[];
+
+function calcInterestWithCompound(balance,rate,frac,yrContrib,compound,compoundN){
+  if(!compound){
+    // Simple: balance earns rate*frac, contributions mid-period
+    return balance*rate*frac + yrContrib*rate*frac/2;
+  }
+  // Compound: S = P*(1+i/n)^(n*t) - P
+  // For contributions: approximate as half-period compound
+  const n=compoundN; // periods per year
+  const t=frac; // fraction of year
+  const interestBal=balance*(Math.pow(1+rate/n,n*t)-1);
+  const interestContrib=yrContrib*(Math.pow(1+rate/n,n*t/2)-1);
+  return interestBal+interestContrib;
 }
 
 function calcTax(interest,rate,infl){
@@ -807,6 +856,20 @@ function syncYieldFromDOM(){
     if(yrs[i]) yrs[i].pct=rawNum(inp.value);
   });
 }
+
+function getInflForYear(yr){
+  const type=document.getElementById('p-infl-type').value;
+  if(type==='fixed') return nv('p-infl');
+  const sorted=[...inflYrs].sort((a,b)=>a.yr-b.yr);
+  const m=sorted.find(r=>r.yr===yr);
+  if(m) return m.pct;
+  if(!sorted.length) return 7;
+  if(yr<sorted[0].yr) return sorted[0].pct;
+  return sorted[sorted.length-1].pct;
+}
+
+let fcRows=[];
+let fcMonthRows=[];
 
 function calcForecast(){
   const depMode=document.getElementById('p-dep-mode').value;
@@ -828,86 +891,112 @@ function calcForecast(){
   const downpay=getGoalDownpay()/100;
   const ytype=document.getElementById('p-ytype').value;
   const yfixed=nv('p-yfixed');
-  const infl=nv('p-infl');
-  const priceGrowthReal=Math.max(0,priceGrowthNom-infl)/100;
+  const compound=document.getElementById('p-compound').checked;
+  const compN=compound?parseInt(document.getElementById('p-compound-n').value):1;
 
   if(ytype==='flex') syncYieldFromDOM();
+  if(document.getElementById('p-infl-type').value==='flex'){
+    document.querySelectorAll('#infl-yr-grid input[type=text]').forEach((inp,i)=>{
+      if(inflYrs[i]) inflYrs[i].pct=rawNum(inp.value);
+    });
+  }
 
   const today=startDate;
   const startYr=today.getFullYear();
-  // Days remaining in current year from today (inclusive)
   const Jan1Next=new Date(startYr+1,0,1);
   const msLeft=Jan1Next-today;
   const daysInYear=((new Date(startYr+1,0,1))-(new Date(startYr,0,1)))/86400000;
   const daysLeft=msLeft/86400000;
   const fracFirst=Math.min(1,daysLeft/daysInYear);
-  // Months remaining (proportional)
-  const monthsLeft=fracFirst*12;
+  const monthsLeft=Math.max(1,Math.round(fracFirst*12));
 
-  // Starting investable balance
-  let balance = cushionOn ? deposit : Math.max(0, deposit - cushionAmt);
-
-  const rows=[];
+  let balance=cushionOn?deposit:Math.max(0,deposit-cushionAmt);
+  fcRows=[];
+  fcMonthRows=[];
   let goalIdx=-1;
+  let totalMonths=0;
 
   for(let yr=startYr;yr<=startYr+70;yr++){
-    const rate=getRate(yr,ytype,yfixed,yrs,infl);
+    const infl=getInflForYear(yr);
+    // Get nominal yield pct for this year
+    let rawPct;
+    if(ytype==='fixed') rawPct=yfixed;
+    else {
+      const sorted=[...yrs].sort((a,b)=>a.yr-b.yr);
+      const m2=sorted.find(r=>r.yr===yr);
+      if(m2) rawPct=m2.pct;
+      else if(!sorted.length) rawPct=10;
+      else if(yr<sorted[0].yr) rawPct=sorted[0].pct;
+      else rawPct=sorted[sorted.length-1].pct;
+    }
+    const realPct=Math.max(0,rawPct-infl);
+    const annualRate=realPct/100;
+
     const isFirst=yr===startYr;
     const frac=isFirst?fracFirst:1;
     const months=isFirst?monthsLeft:12;
     const yrContrib=contrib*months;
-    // Interest: balance earns for full period, contributions earn for half the period (mid-year approximation)
-    const interest=balance*rate*frac + yrContrib*rate*frac/2;
-    const tax=calcTax(interest,rate,infl);
+
+    let interest;
+    if(compound){
+      interest=balance*(Math.pow(1+annualRate/compN,compN*frac)-1)
+               +yrContrib*(Math.pow(1+annualRate/compN,compN*frac/2)-1);
+    } else {
+      interest=balance*annualRate*frac+yrContrib*annualRate*frac/2;
+    }
+
+    const tax=calcTax(interest,annualRate,infl);
     const endBal=balance+yrContrib+interest-tax;
-    // Price grows from start: for first partial year grow proportionally
+    const priceGrowthReal=Math.max(0,priceGrowthNom-infl)/100;
     const yearsElapsed=yr-startYr+(isFirst?frac:1);
     const housing=price0*Math.pow(1+priceGrowthReal,yearsElapsed);
     const required=housing*downpay;
     const effectiveBal=endBal+(cushionOn?0:cushionAmt);
     const share=effectiveBal/required;
 
-    rows.push({yr, startBal:isFirst?null:balance, contrib:yrContrib, interest, tax, endBal, housing, required, share});
-    balance=endBal;
+    fcRows.push({yr,startBal:isFirst?null:balance,contrib:yrContrib,interest,tax,endBal,housing,required,share});
 
-    if(share>=1&&goalIdx<0) goalIdx=rows.length-1;
-    if(goalIdx>=0&&rows.length>=goalIdx+3) break;
+    // Monthly breakdown
+    const monthRate=annualRate/12;
+    let mBal=balance;
+    const startMonth=isFirst?(12-monthsLeft):0;
+    for(let m=0;m<months;m++){
+      totalMonths++;
+      const mDate=new Date(yr,startMonth+m,1);
+      const mLabel=(mDate.getMonth()+1).toString().padStart(2,'0')+'.'+mDate.getFullYear();
+      const mContrib=contrib;
+      let mInt;
+      if(compound&&compN===12){
+        mInt=mBal*monthRate+mContrib*monthRate/2;
+      } else {
+        mInt=mBal*annualRate/12+mContrib*annualRate/24;
+      }
+      const mTax=mInt>0?calcTax(mInt*12,annualRate,infl)/12:0;
+      const mEnd=mBal+mContrib+mInt-mTax;
+      const mHousing=price0*Math.pow(1+priceGrowthReal,totalMonths/12);
+      const mReq=mHousing*downpay;
+      const mEff=mEnd+(cushionOn?0:cushionAmt);
+      fcMonthRows.push({label:mLabel,startBal:m===0?(isFirst?null:balance):null,contrib:mContrib,interest:mInt,tax:mTax,endBal:mEnd,housing:mHousing,required:mReq,share:mEff/mReq});
+      mBal=mEnd;
+    }
+
+    balance=endBal;
+    if(share>=1&&goalIdx<0) goalIdx=fcRows.length-1;
+    if(goalIdx>=0&&fcRows.length>=goalIdx+3) break;
   }
 
-  // Save goal row for credit suggestion
-  const prevGoalYr = forecastGoalRow ? forecastGoalRow.yr : null;
-  forecastGoalRow = goalIdx >= 0 ? rows[goalIdx] : null;
-  // Reset dismissed only if goal year changed (new scenario)
-  if(forecastGoalRow && forecastGoalRow.yr !== prevGoalYr) suggestionDismissed = false;
-
-  const tbody=document.getElementById('fc-tbody');
-  tbody.innerHTML='';
-  rows.forEach((r,idx)=>{
-    const isFirstGoal=idx===goalIdx;
-    const isOver=r.share>=1;
-    const tr=document.createElement('tr');
-    if(isFirstGoal) tr.className='ms';
-    tr.innerHTML='<td>'+r.yr+'</td>'+
-      '<td>'+fM(r.startBal)+'</td>'+
-      '<td>'+fM(r.contrib)+'</td>'+
-      '<td>'+fM(r.interest)+'</td>'+
-      '<td>'+fM(r.tax)+'</td>'+
-      '<td>'+fM(r.endBal)+'</td>'+
-      '<td>'+fM(r.required)+'</td>'+
-      '<td>'+fM(r.housing)+'</td>'+
-      '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+
-        (r.share*100).toFixed(1)+'%</td>';
-    tbody.appendChild(tr);
-  });
+  const prevGoalYr=forecastGoalRow?forecastGoalRow.yr:null;
+  forecastGoalRow=goalIdx>=0?fcRows[goalIdx]:null;
+  if(forecastGoalRow&&forecastGoalRow.yr!==prevGoalYr) suggestionDismissed=false;
 
   document.getElementById('fc-result').style.display='';
+  renderFcTable();
 
-  // Collapse base & goal blocks
-  ['base','goal'].forEach(id=>{
+  ['base','goal','infl','yield'].forEach(id=>{
     const body=document.getElementById('body-'+id);
     const head=document.querySelector('#fb-'+id+' .fb-head');
     const arr=document.getElementById('arr-'+id);
-    if(body.classList.contains('open')){
+    if(body&&body.classList.contains('open')){
       body.classList.remove('open');
       head.classList.remove('open');
       arr.classList.remove('open');
@@ -915,6 +1004,34 @@ function calcForecast(){
   });
 
   setTimeout(()=>document.getElementById('fc-result').scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+function renderFcTable(){
+  const monthly=document.getElementById('fc-monthly-toggle')&&document.getElementById('fc-monthly-toggle').checked;
+  const thead=document.getElementById('fc-thead');
+  const tbody=document.getElementById('fc-tbody');
+  const period=monthly?'Месяц':'Год';
+  thead.innerHTML='<tr><th>'+period+'</th><th>Начало периода</th><th>Взносы</th><th>% Доход</th><th>Налог</th><th>Конец периода</th><th>Треб. взнос</th><th>Стоимость цели</th><th>Доля</th></tr>';
+  tbody.innerHTML='';
+  const rows=monthly?fcMonthRows:fcRows;
+  let firstGoalMarked=false;
+  rows.forEach((r)=>{
+    const isOver=r.share>=1;
+    const isGoal=isOver&&!firstGoalMarked;
+    if(isGoal) firstGoalMarked=true;
+    const tr=document.createElement('tr');
+    if(isGoal) tr.className='ms';
+    tr.innerHTML='<td>'+(monthly?r.label:r.yr)+'</td>'+
+      '<td>'+fM(r.startBal)+'</td>'+
+      '<td>'+fM(r.contrib)+'</td>'+
+      '<td>'+fM(r.interest)+'</td>'+
+      '<td>'+fM(r.tax)+'</td>'+
+      '<td>'+fM(r.endBal)+'</td>'+
+      '<td>'+fM(r.required)+'</td>'+
+      '<td>'+fM(r.housing)+'</td>'+
+      '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+(r.share*100).toFixed(1)+'%</td>';
+    tbody.appendChild(tr);
+  });
 }
 
 // ════ STORAGE ════
@@ -1138,9 +1255,16 @@ function niceSteps(minV,maxV,nTicks){
 }
 
 function fAxis(v){
+  if(v===0) return '0';
   if(Math.abs(v)>=1e9) return (v/1e9).toFixed(1)+' млрд';
-  if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+' М';
-  if(Math.abs(v)>=1e3) return fmtInt(v/1e3)+' К';
+  if(Math.abs(v)>=1e6){
+    const m=v/1e6;
+    return (Number.isInteger(m)?m.toFixed(1):m.toFixed(1))+' М';
+  }
+  if(Math.abs(v)>=1e3){
+    const k=v/1e3;
+    return (Number.isInteger(k)?k.toFixed(0):k.toFixed(0))+' К';
+  }
   return fmtInt(v);
 }
 
@@ -1340,17 +1464,75 @@ cwrap.addEventListener('touchmove',e=>{ e.preventDefault(); if(cPts.length) upda
 cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
 cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
-function crDownZero(){
+let crDownPrev='5 000 000';
+function onNoDownToggle(){
+  const chk=document.getElementById('cr-no-down');
   const inp=document.getElementById('cr-down');
-  inp.value='0';
-  inp.disabled=true;
-  inp.style.opacity='0.4';
+  if(chk.checked){
+    crDownPrev=inp.value;
+    inp.value='0';
+    inp.disabled=true;
+    inp.style.opacity='0.4';
+  } else {
+    inp.disabled=false;
+    inp.style.opacity='1';
+    inp.value=crDownPrev;
+  }
   calcCredit();
 }
-function crDownEnable(){
-  const inp=document.getElementById('cr-down');
-  inp.disabled=false;
-  inp.style.opacity='1';
+
+// ════ INFLATION FLEX ════
+let inflYrs=[{yr:CY,pct:7},{yr:CY+1,pct:7},{yr:CY+2,pct:7}];
+
+function onInflTypeChange(){
+  const v=document.getElementById('p-infl-type').value;
+  document.getElementById('infl-fixed').style.display=v==='fixed'?'':'none';
+  document.getElementById('infl-flex').style.display=v==='flex'?'':'none';
+  if(v==='flex') renderInflYR();
+}
+
+function renderInflYR(){
+  const grid=document.getElementById('infl-yr-grid');
+  grid.innerHTML='';
+  const colCount=Math.ceil(inflYrs.length/4);
+  for(let c=0;c<colCount;c++){
+    const col=document.createElement('div');
+    col.className='yr-col';
+    for(let r=0;r<4;r++){
+      const i=c*4+r;
+      if(i>=inflYrs.length) break;
+      const row=document.createElement('div');
+      row.className='yr';
+      row.innerHTML='<span class="yr-lbl">'+inflYrs[i].yr+'</span>'+
+        '<input type="text" value="'+inflYrs[i].pct+'" inputmode="decimal" onchange="inflYrs['+i+'].pct=rawNum(this.value)">'+
+        '<button class="del-yr" onclick="removeInflYR('+i+')" title="Удалить">✕</button>';
+      col.appendChild(row);
+    }
+    grid.appendChild(col);
+  }
+}
+function addInflYR(){
+  const last=inflYrs.length?inflYrs[inflYrs.length-1].yr:CY-1;
+  inflYrs.push({yr:last+1,pct:7});
+  renderInflYR();
+}
+function removeInflYR(i){ if(inflYrs.length<=1) return; inflYrs.splice(i,1); renderInflYR(); }
+
+function getInfl(yr){
+  const type=document.getElementById('p-infl-type').value;
+  if(type==='fixed') return nv('p-infl');
+  const sorted=[...inflYrs].sort((a,b)=>a.yr-b.yr);
+  const m=sorted.find(r=>r.yr===yr);
+  if(m) return m.pct;
+  if(!sorted.length) return 7;
+  if(yr<sorted[0].yr) return sorted[0].pct;
+  return sorted[sorted.length-1].pct;
+}
+
+// ════ COMPOUND ════
+function onCompoundChange(){
+  document.getElementById('compound-period').style.display=
+    document.getElementById('p-compound').checked?'':'none';
 }
 
 // ════ CREDIT CALC ════
@@ -1550,6 +1732,14 @@ function renderCrTable(){
   }
 }
 
+function niceStepsCr(maxVal){
+  const steps=[50000,100000,500000,1000000,2000000,5000000,10000000,20000000];
+  for(const s of steps){
+    if(maxVal/s<=6) return s;
+  }
+  return Math.ceil(maxVal/5/1000000)*1000000;
+}
+
 function drawCrChart(){
   const wrap=document.getElementById('cr-chart-wrap');
   const canvas=document.getElementById('cr-chart');
@@ -1568,7 +1758,9 @@ function drawCrChart(){
   const gw=W-pad.l-pad.r;
   const gh=H-pad.t-pad.b;
 
-  const ySteps2=niceSteps(0,maxVal,4);
+  const step=niceStepsCr(maxVal);
+  const ySteps2=[];
+  for(let v=0;v<=maxVal*1.05;v+=step) ySteps2.push(v);
   const yMax2=ySteps2[ySteps2.length-1]||1;
   ctx.font='500 10px Manrope,-apple-system,sans-serif';
   ctx.textAlign='right';
