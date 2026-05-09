@@ -99,8 +99,10 @@ body{font-family:'Manrope',-apple-system,sans-serif;background:#F0F0F0;color:var
 /* table */
 .tscroll{overflow-x:auto;margin:0 -24px;padding:0 24px}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px}
-thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd);position:relative;width:1%}
-thead th:first-child{text-align:left;width:56px}
+thead th{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--brd);position:relative}
+thead th:first-child{text-align:left}
+table.fixed-cols{table-layout:fixed;width:100%}
+table.fixed-cols thead th{overflow:hidden;text-overflow:ellipsis}
 tbody td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--brd);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--txt)}
 tbody td:first-child{text-align:left;font-weight:700}
 .ms td{color:var(--red)!important;background:rgba(232,0,28,0.07)}
@@ -389,7 +391,7 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
         </div>
         <div class="tscroll">
-          <table id="fc-table">
+          <table id="fc-table" style="table-layout:fixed;width:100%">
             <thead id="fc-thead"></thead>
             <tbody id="fc-tbody"></tbody>
           </table>
@@ -567,7 +569,14 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
           </div>
         </div>
         <div class="tscroll">
-          <table>
+          <table style="table-layout:fixed;width:100%">
+            <colgroup>
+              <col style="width:13%">
+              <col style="width:21.75%">
+              <col style="width:21.75%">
+              <col style="width:21.75%">
+              <col style="width:21.75%">
+            </colgroup>
             <thead id="cr-thead"><tr>
               <th>Год</th><th>Платёж / мес</th><th>Осн. долг</th><th>Проценты</th><th>Остаток</th>
             </tr></thead>
@@ -1743,7 +1752,8 @@ function renderCrTable(){
 }
 
 function niceStepsCr(maxVal){
-  const steps=[50000,100000,500000,1000000,2000000,5000000,10000000,20000000];
+  // Explicit nice steps: 50K, 100K, 500K, 1M, 2M, 5M, 10M, 20M
+  const steps=[50000,100000,500000,1000000,2000000,5000000,10000000,20000000,50000000];
   for(const s of steps){
     if(maxVal/s<=6) return s;
   }
@@ -1763,38 +1773,51 @@ function drawCrChart(){
   ctx.clearRect(0,0,W,H);
 
   if(!crYearRows.length) return;
+
+  // Total bar height = principal + interest
   const maxVal=Math.max(...crYearRows.map(r=>r.principal+r.interest));
   const pad={t:12,r:14,b:28,l:56};
   const gw=W-pad.l-pad.r;
   const gh=H-pad.t-pad.b;
 
+  // Y axis: pick step so we get 4-6 gridlines
   const step=niceStepsCr(maxVal);
-  const ySteps2=[];
-  for(let v=0;v<=maxVal*1.05;v+=step) ySteps2.push(v);
-  const yMax2=ySteps2[ySteps2.length-1]||1;
+  const yMax=Math.ceil(maxVal/step)*step + step; // one extra step of headroom
+  const ySteps=[];
+  for(let v=0;v<=yMax;v+=step) ySteps.push(v);
+
+  // Draw grid + Y labels
   ctx.font='500 10px Manrope,-apple-system,sans-serif';
   ctx.textAlign='right';
-  ySteps2.forEach(v=>{
-    const y=pad.t+gh-(v/yMax2)*gh;
+  ySteps.forEach(v=>{
+    const y=pad.t+gh-(v/yMax)*gh;
     ctx.strokeStyle='rgba(0,0,0,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gw,y); ctx.stroke();
-    ctx.fillStyle='#9A9A9A'; ctx.fillText(fAxis(v),pad.l-5,y+3.5);
+    ctx.fillStyle='#9A9A9A';
+    ctx.fillText(fAxis(v),pad.l-5,y+3.5);
   });
 
+  // Draw stacked bars: principal at bottom (darker), interest on top (lighter)
   const barW=Math.max(4,Math.min(32,gw/crYearRows.length*0.7));
   const gap=gw/crYearRows.length;
   crYearRows.forEach((r,idx)=>{
     const x=pad.l+idx*gap+gap/2-barW/2;
-    const princH=r.principal/yMax2*gh;
-    const intH=r.interest/yMax2*gh;
     const yBase=pad.t+gh;
-    ctx.fillStyle='rgba(154,206,235,0.35)';
-    ctx.fillRect(x,yBase-intH,barW,intH);
+    const princH=(r.principal/yMax)*gh;
+    const intH=(r.interest/yMax)*gh;
+
+    // Principal: bottom segment (darker blue)
     ctx.fillStyle='rgba(90,157,191,0.85)';
-    ctx.fillRect(x,yBase-intH-princH,barW,princH);
+    ctx.fillRect(x, yBase-princH, barW, princH);
+
+    // Interest: top segment (lighter blue)
+    ctx.fillStyle='rgba(154,206,235,0.45)';
+    ctx.fillRect(x, yBase-princH-intH, barW, intH);
+
+    // X label
     if(idx%Math.ceil(crYearRows.length/8)===0||idx===crYearRows.length-1){
       ctx.fillStyle='#ADADAD'; ctx.textAlign='center';
-      ctx.fillText(r.yr,x+barW/2,H-6);
+      ctx.fillText(r.yr, x+barW/2, H-6);
     }
   });
 }
