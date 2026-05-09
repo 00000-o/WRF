@@ -868,8 +868,18 @@ function getInflForYear(yr){
   return sorted[sorted.length-1].pct;
 }
 
-let fcRows=[];
-let fcMonthRows=[];
+function calcInterestWithCompound(balance,rate,frac,yrContrib,compound,compoundN){
+  if(!compound){
+    return balance*rate*frac + yrContrib*rate*frac/2;
+  }
+  const n=compoundN;
+  const periods=Math.round(n*frac);
+  const rPerPeriod=rate/n;
+  const balanceEnd=balance*Math.pow(1+rPerPeriod,periods);
+  const balanceInterest=balanceEnd-balance;
+  const contribInterest=yrContrib*rPerPeriod/2*periods;
+  return balanceInterest+contribInterest;
+}
 
 function calcForecast(){
   const depMode=document.getElementById('p-dep-mode').value;
