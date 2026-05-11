@@ -975,7 +975,8 @@ function calcForecast(){
 
     fcRows.push({yr,startBal:isFirst?null:balance,contrib:yrContrib,interest,tax,endBal,housing,required,share});
 
-    // Monthly breakdown
+    // Monthly breakdown — distribute annual tax evenly across months
+    const monthTax = months > 0 ? tax / months : 0;
     const monthRate=annualRate/12;
     let mBal=balance;
     const startMonth=isFirst?(12-monthsLeft):0;
@@ -990,12 +991,11 @@ function calcForecast(){
       } else {
         mInt=mBal*annualRate/12+mContrib*annualRate/24;
       }
-      const mTax=mInt>0?calcTax(mInt*12,annualRate,infl)/12:0;
-      const mEnd=mBal+mContrib+mInt-mTax;
+      const mEnd=mBal+mContrib+mInt-monthTax;
       const mHousing=price0*Math.pow(1+priceGrowthReal,totalMonths/12);
       const mReq=mHousing*downpay;
       const mEff=mEnd+(cushionOn?0:cushionAmt);
-      fcMonthRows.push({label:mLabel,startBal:m===0?(isFirst?null:balance):null,contrib:mContrib,interest:mInt,tax:mTax,endBal:mEnd,housing:mHousing,required:mReq,share:mEff/mReq});
+      fcMonthRows.push({label:mLabel,startBal:m===0?(isFirst?null:balance):null,contrib:mContrib,interest:mInt,tax:monthTax,endBal:mEnd,housing:mHousing,required:mReq,share:mEff/mReq});
       mBal=mEnd;
     }
 
