@@ -385,9 +385,15 @@ canvas#chart{display:block;position:absolute;top:0;left:0}
       <div id="fc-result" style="display:none;margin-top:28px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div class="stitle" style="margin-bottom:0">Прогноз</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="fc-monthly-toggle" onchange="renderFcTable()"><div class="tgl-track"></div></label>
-            <span style="font-size:12px;font-weight:600;color:var(--txt2)">По месяцам</span>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+              <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="fc-monthly-toggle" onchange="renderFcTable()"><div class="tgl-track"></div></label>
+              <span style="font-size:12px;font-weight:600;color:var(--txt2)">По месяцам</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label class="tgl" style="flex-shrink:0"><input type="checkbox" id="fc-real-toggle" onchange="renderFcTable()"><div class="tgl-track"></div></label>
+              <span style="font-size:12px;font-weight:600;color:var(--txt2)">С учётом инфляции</span>
+            </div>
           </div>
         </div>
         <div class="tscroll">
@@ -852,10 +858,12 @@ function calcInterestWithCompound(balance,rate,frac,yrContrib,compound,compoundN
   return interestBal+interestContrib;
 }
 
-function calcTax(interest,rate,infl){
-  const keyRate=(infl+rate*100)/2/100;
+function calcTax(nominalInterest, nominalRate, infl){
+  // Ключевая ставка ≈ среднее между инфляцией и номинальной доходностью
+  const keyRate=(infl/100 + nominalRate)/2;
+  // Необлагаемый лимит = 1 000 000 ₽ × ключевую ставку (НК РФ ст. 214.2)
   const exempt=1000000*keyRate;
-  const taxable=Math.max(0,interest-exempt);
+  const taxable=Math.max(0,nominalInterest-exempt);
   const tax=taxable*0.13;
   return tax<100?0:tax;
 }
@@ -937,7 +945,7 @@ function calcForecast(){
 
   for(let yr=startYr;yr<=startYr+70;yr++){
     const infl=getInflForYear(yr);
-    // Get nominal yield pct for this year
+    // Номинальная ставка доходности
     let rawPct;
     if(ytype==='fixed') rawPct=yfixed;
     else {
@@ -948,36 +956,39 @@ function calcForecast(){
       else if(yr<sorted[0].yr) rawPct=sorted[0].pct;
       else rawPct=sorted[sorted.length-1].pct;
     }
-    const realPct=Math.max(0,rawPct-infl);
-    const annualRate=realPct/100;
+    const nominalRate=rawPct/100; // номинальная — для роста баланса и налога
 
     const isFirst=yr===startYr;
     const frac=isFirst?fracFirst:1;
     const months=isFirst?monthsLeft:12;
     const yrContrib=contrib*months;
 
+    // Номинальный доход — для роста баланса и для налога
     let interest;
     if(compound){
-      interest=balance*(Math.pow(1+annualRate/compN,compN*frac)-1)
-               +yrContrib*(Math.pow(1+annualRate/compN,compN*frac/2)-1);
+      interest=balance*(Math.pow(1+nominalRate/compN,compN*frac)-1)
+               +yrContrib*(Math.pow(1+nominalRate/compN,compN*frac/2)-1);
     } else {
-      interest=balance*annualRate*frac+yrContrib*annualRate*frac/2;
+      interest=balance*nominalRate*frac+yrContrib*nominalRate*frac/2;
     }
 
-    const tax=calcTax(interest,annualRate,infl);
+    const tax=calcTax(interest,nominalRate,infl);
     const endBal=balance+yrContrib+interest-tax;
-    const priceGrowthReal=Math.max(0,priceGrowthNom-infl)/100;
+
+    // Стоимость цели растёт по номинальному росту цен
+    const priceGrowthNomRate=priceGrowthNom/100;
     const yearsElapsed=yr-startYr+(isFirst?frac:1);
-    const housing=price0*Math.pow(1+priceGrowthReal,yearsElapsed);
+    const housing=price0*Math.pow(1+priceGrowthNomRate,yearsElapsed);
     const required=housing*downpay;
     const effectiveBal=endBal+(cushionOn?0:cushionAmt);
     const share=effectiveBal/required;
 
-    fcRows.push({yr,startBal:isFirst?null:balance,contrib:yrContrib,interest,tax,endBal,housing,required,share});
+    // infl и yearsElapsed сохраняем для режима «с учётом инфляции»
+    fcRows.push({yr,startBal:isFirst?null:balance,contrib:yrContrib,interest,tax,endBal,housing,required,share,infl,yearsElapsed});
 
-    // Monthly breakdown — distribute annual tax evenly across months
-    const monthTax = months > 0 ? tax / months : 0;
-    const monthRate=annualRate/12;
+    // Месячная разбивка
+    const monthTax=months>0?tax/months:0;
+    const monthNomRate=nominalRate/12;
     let mBal=balance;
     const startMonth=isFirst?(12-monthsLeft):0;
     for(let m=0;m<months;m++){
@@ -987,15 +998,15 @@ function calcForecast(){
       const mContrib=contrib;
       let mInt;
       if(compound&&compN===12){
-        mInt=mBal*monthRate+mContrib*monthRate/2;
+        mInt=mBal*monthNomRate+mContrib*monthNomRate/2;
       } else {
-        mInt=mBal*annualRate/12+mContrib*annualRate/24;
+        mInt=mBal*nominalRate/12+mContrib*nominalRate/24;
       }
       const mEnd=mBal+mContrib+mInt-monthTax;
-      const mHousing=price0*Math.pow(1+priceGrowthReal,totalMonths/12);
+      const mHousing=price0*Math.pow(1+priceGrowthNomRate,totalMonths/12);
       const mReq=mHousing*downpay;
       const mEff=mEnd+(cushionOn?0:cushionAmt);
-      fcMonthRows.push({label:mLabel,startBal:m===0?(isFirst?null:balance):null,contrib:mContrib,interest:mInt,tax:monthTax,endBal:mEnd,housing:mHousing,required:mReq,share:mEff/mReq});
+      fcMonthRows.push({label:mLabel,startBal:m===0?(isFirst?null:balance):null,contrib:mContrib,interest:mInt,tax:monthTax,endBal:mEnd,housing:mHousing,required:mReq,share:mEff/mReq,infl,yearsElapsed:totalMonths/12});
       mBal=mEnd;
     }
 
@@ -1027,27 +1038,48 @@ function calcForecast(){
 
 function renderFcTable(){
   const monthly=document.getElementById('fc-monthly-toggle')&&document.getElementById('fc-monthly-toggle').checked;
+  const showReal=document.getElementById('fc-real-toggle')&&document.getElementById('fc-real-toggle').checked;
   const thead=document.getElementById('fc-thead');
   const tbody=document.getElementById('fc-tbody');
   const period=monthly?'Месяц':'Год';
-  thead.innerHTML='<tr><th>'+period+'</th><th>Начало периода</th><th>Взносы</th><th>% Доход</th><th>Налог</th><th>Конец периода</th><th>Треб. взнос</th><th>Стоимость цели</th><th>Доля</th></tr>';
+  const suffix=showReal?' <span style="font-weight:400;font-size:9px;text-transform:none">в ценах сегодня</span>':'';
+  thead.innerHTML='<tr><th>'+period+'</th><th>Начало периода'+suffix+'</th><th>Взносы'+suffix+'</th><th>% Доход'+suffix+'</th><th>Налог'+suffix+'</th><th>Конец периода'+suffix+'</th><th>Треб. взнос'+suffix+'</th><th>Стоимость цели'+suffix+'</th><th>Доля</th></tr>';
   tbody.innerHTML='';
   const rows=monthly?fcMonthRows:fcRows;
+
+  // Pre-compute cumulative inflation deflators per row
+  // deflator(r) = product of (1+infl_yr/100) over all years from startYr to r.yr
+  // We approximate: deflate each row's values by (1+avgInfl)^yearsElapsed
+  // More precisely: each row stores its own infl and yearsElapsed
+  // We use cumulative product built as we iterate
+  let cumulDeflator=1;
+  let prevYr=rows.length?( monthly? parseInt(rows[0].label.split('.')[1]) : rows[0].yr ) : CY;
+
   let firstGoalMarked=false;
-  rows.forEach((r)=>{
+  rows.forEach((r,idx)=>{
+    // Update cumulative deflator: multiply by (1+infl/100) for each year elapsed
+    if(idx===0){
+      cumulDeflator=Math.pow(1+r.infl/100, r.yearsElapsed);
+    } else {
+      const prev=rows[idx-1];
+      const deltaYears=r.yearsElapsed-prev.yearsElapsed;
+      cumulDeflator*=Math.pow(1+r.infl/100, deltaYears);
+    }
+    const d=showReal?(v=>v===null?null:v/cumulDeflator):(v=>v);
+
     const isOver=r.share>=1;
     const isGoal=isOver&&!firstGoalMarked;
     if(isGoal) firstGoalMarked=true;
     const tr=document.createElement('tr');
     if(isGoal) tr.className='ms';
     tr.innerHTML='<td>'+(monthly?r.label:r.yr)+'</td>'+
-      '<td>'+fM(r.startBal)+'</td>'+
-      '<td>'+fM(r.contrib)+'</td>'+
-      '<td>'+fM(r.interest)+'</td>'+
-      '<td>'+fM(r.tax)+'</td>'+
-      '<td>'+fM(r.endBal)+'</td>'+
-      '<td>'+fM(r.required)+'</td>'+
-      '<td>'+fM(r.housing)+'</td>'+
+      '<td>'+fM(d(r.startBal))+'</td>'+
+      '<td>'+fM(d(r.contrib))+'</td>'+
+      '<td>'+fM(d(r.interest))+'</td>'+
+      '<td>'+fM(d(r.tax))+'</td>'+
+      '<td>'+fM(d(r.endBal))+'</td>'+
+      '<td>'+fM(d(r.required))+'</td>'+
+      '<td>'+fM(d(r.housing))+'</td>'+
       '<td style="font-weight:700;color:'+(isOver?'var(--red)':'inherit')+'">'+(r.share*100).toFixed(1)+'%</td>';
     tbody.appendChild(tr);
   });
@@ -1479,8 +1511,10 @@ function closestIdx(cx){
 
 const cwrap=document.getElementById('cwrap');
 cwrap.addEventListener('mousemove',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
+cwrap.addEventListener('mouseleave',()=>{ if(cPts.length){ updateTip(cPts.length-1); document.getElementById('sline').style.display='none'; document.getElementById('sdot').style.display='none'; } });
 cwrap.addEventListener('touchmove',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
 cwrap.addEventListener('touchstart',e=>{ e.preventDefault(); if(cPts.length) updateTip(closestIdx(e.touches[0].clientX)); },{passive:false});
+cwrap.addEventListener('touchend',()=>{ if(cPts.length){ updateTip(cPts.length-1); document.getElementById('sline').style.display='none'; document.getElementById('sdot').style.display='none'; } });
 cwrap.addEventListener('click',e=>{ if(cPts.length) updateTip(closestIdx(e.clientX)); });
 
 let crDownPrev='5 000 000';
