@@ -1042,8 +1042,7 @@ function renderFcTable(){
   const thead=document.getElementById('fc-thead');
   const tbody=document.getElementById('fc-tbody');
   const period=monthly?'Месяц':'Год';
-  const suffix=showReal?' <span style="font-weight:400;font-size:9px;text-transform:none">в ценах сегодня</span>':'';
-  thead.innerHTML='<tr><th>'+period+'</th><th>Начало периода'+suffix+'</th><th>Взносы'+suffix+'</th><th>% Доход'+suffix+'</th><th>Налог'+suffix+'</th><th>Конец периода'+suffix+'</th><th>Треб. взнос'+suffix+'</th><th>Стоимость цели'+suffix+'</th><th>Доля</th></tr>';
+  thead.innerHTML='<tr><th>'+period+'</th><th>Начало периода</th><th>Взносы</th><th>% Доход</th><th>Налог</th><th>Конец периода</th><th>Треб. взнос</th><th>Стоимость цели</th><th>Доля</th></tr>';
   tbody.innerHTML='';
   const rows=monthly?fcMonthRows:fcRows;
 
@@ -1065,7 +1064,11 @@ function renderFcTable(){
       const deltaYears=r.yearsElapsed-prev.yearsElapsed;
       cumulDeflator*=Math.pow(1+r.infl/100, deltaYears);
     }
-    const d=showReal?(v=>v===null?null:v/cumulDeflator):(v=>v);
+    // deflate: nominal → today's ₽
+    // contrib is fixed in today's money — no deflation needed
+    // interest, tax, balances, housing grow nominally → deflate them
+    const d  = showReal ? (v=>v===null?null:v/cumulDeflator) : (v=>v);
+    const dc = (v=>v); // взнос не дефлятируем — он уже в сегодняшних ценах
 
     const isOver=r.share>=1;
     const isGoal=isOver&&!firstGoalMarked;
@@ -1074,7 +1077,7 @@ function renderFcTable(){
     if(isGoal) tr.className='ms';
     tr.innerHTML='<td>'+(monthly?r.label:r.yr)+'</td>'+
       '<td>'+fM(d(r.startBal))+'</td>'+
-      '<td>'+fM(d(r.contrib))+'</td>'+
+      '<td>'+fM(dc(r.contrib))+'</td>'+
       '<td>'+fM(d(r.interest))+'</td>'+
       '<td>'+fM(d(r.tax))+'</td>'+
       '<td>'+fM(d(r.endBal))+'</td>'+
